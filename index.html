@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Totally Rad 80's Trivia</title>
+<style>
+  :root {
+    --neon-pink: #ff2e88;
+    --neon-cyan: #05d9e8;
+    --neon-purple: #b537f2;
+    --neon-yellow: #f9f002;
+    --dark: #0d0221;
+    --dark2: #1a0b3d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Courier New', monospace;
+    background: var(--dark);
+    background-image:
+      linear-gradient(rgba(181, 55, 242, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(181, 55, 242, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  /* sunset glow at the bottom */
+  body::after {
+    content: "";
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 40vh;
+    background: linear-gradient(to top, rgba(255, 46, 136, 0.25), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .game {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+    background: rgba(26, 11, 61, 0.85);
+    border: 2px solid var(--neon-cyan);
+    border-radius: 12px;
+    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 30px rgba(5, 217, 232, 0.1);
+    padding: 32px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.8rem, 6vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--neon-yellow);
+    text-shadow:
+      0 0 8px var(--neon-pink),
+      3px 3px 0 var(--neon-pink),
+      6px 6px 0 var(--neon-purple);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--neon-cyan);
+    letter-spacing: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  .screen { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  p.lead { text-align: center; line-height: 1.6; margin-bottom: 24px; color: #d8c7ff; }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-primary {
+    display: block;
+    width: 100%;
+    background: var(--neon-pink);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 0 12px var(--neon-pink);
+  }
+  .btn-primary:hover { background: var(--neon-purple); box-shadow: 0 0 18px var(--neon-purple); transform: translateY(-2px); }
+
+  /* HUD */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .hud .score { color: var(--neon-yellow); }
+  .hud .qcount { color: var(--neon-cyan); }
+
+  .category-tag {
+    display: inline-block;
+    background: var(--neon-purple);
+    color: #fff;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  /* timer bar */
+  .timer-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .timer-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 8px var(--neon-cyan);
+    transition: width 0.1s linear, background 0.3s;
+  }
+
+  .question {
+    font-size: 1.25rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    color: #fff;
+  }
+
+  .answers { display: grid; gap: 12px; }
+
+  .answer {
+    text-align: left;
+    background: rgba(5, 217, 232, 0.08);
+    border: 2px solid var(--neon-cyan);
+    color: #fff;
+    font-size: 1rem;
+    padding: 14px 18px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .answer:hover:not(:disabled) { background: rgba(5, 217, 232, 0.25); transform: translateX(4px); }
+  .answer .letter {
+    font-weight: bold;
+    color: var(--neon-yellow);
+    flex-shrink: 0;
+  }
+  .answer:disabled { cursor: default; }
+  .answer.correct { background: rgba(57, 255, 20, 0.2); border-color: #39ff14; box-shadow: 0 0 12px #39ff14; }
+  .answer.wrong { background: rgba(255, 46, 136, 0.2); border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
+  .answer.dim { opacity: 0.4; }
+
+  .feedback {
+    text-align: center;
+    margin-top: 20px;
+    min-height: 24px;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+  }
+  .feedback.good { color: #39ff14; }
+  .feedback.bad { color: var(--neon-pink); }
+
+  .next-wrap { margin-top: 20px; }
+
+  /* results */
+  .final-score {
+    text-align: center;
+    font-size: 4rem;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 16px var(--neon-pink);
+    margin: 10px 0;
+  }
+  .rank {
+    text-align: center;
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="game">
+  <h1>80's Trivia</h1>
+  <div class="subtitle">★ Totally Rad Edition ★</div>
+
+  <!-- START -->
+  <div id="start" class="screen">
+    <p class="lead">
+      Crank up the synth and tease your neon-soaked brain.<br>
+      10 random questions from the decade of big hair,
+      bigger movies, and the birth of the video game.<br><br>
+      Answer fast — the timer means bonus points!
+    </p>
+    <button class="btn-primary" onclick="startGame()">Insert Coin ▶</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="screen" style="display:none;">
+    <div class="hud">
+      <span class="qcount" id="qcount">Q 1 / 10</span>
+      <span class="score" id="score">Score: 0</span>
+    </div>
+    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+    <span class="category-tag" id="catTag">Movies</span>
+    <div class="question" id="questionText"></div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="next-wrap" id="nextWrap" style="display:none;">
+      <button class="btn-primary" id="nextBtn" onclick="nextQuestion()">Next ▶</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="screen" style="display:none;">
+    <div class="rank" style="margin-top:10px;">Game Over</div>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="rank" id="rankText"></div>
+    <p class="lead" id="recap"></p>
+    <button class="btn-primary" onclick="startGame()">Play Again ↻</button>
+  </div>
+</div>
+
+<script>
+// ---- Question bank ----
+const QUESTIONS = [
+  { cat: "Movies", q: "In 'Back to the Future', what speed must the DeLorean reach to time travel?", a: ["88 mph", "66 mph", "100 mph", "55 mph"], correct: 0 },
+  { cat: "Movies", q: "Who directed 'E.T. the Extra-Terrestrial' (1982)?", a: ["George Lucas", "Steven Spielberg", "Ridley Scott", "John Carpenter"], correct: 1 },
+  { cat: "Movies", q: "In 'The Breakfast Club', what detention 'type' is Allison?", a: ["The Athlete", "The Brain", "The Basket Case", "The Princess"], correct: 2 },
+  { cat: "Movies", q: "What is the name of the gremlin leader in 'Gremlins' (1984)?", a: ["Gizmo", "Spike", "Stripe", "Mogwai"], correct: 2 },
+  { cat: "Movies", q: "In 'Ghostbusters' (1984), what form does Gozer's destructor take?", a: ["Slimer", "Stay Puft Marshmallow Man", "The Terror Dog", "A giant Twinkie"], correct: 1 },
+  { cat: "Movies", q: "What dance movie features Jennifer Grey and Patrick Swayze?", a: ["Flashdance", "Footloose", "Dirty Dancing", "Fame"], correct: 2 },
+  { cat: "Movies", q: "In 'The Karate Kid' (1984), who teaches Daniel karate?", a: ["Mr. Miyagi", "John Kreese", "Mr. Han", "Sensei Lawrence"], correct: 0 },
+  { cat: "Movies", q: "What 1986 film features Tom Cruise as a Navy pilot named Maverick?", a: ["Iron Eagle", "Top Gun", "Days of Thunder", "The Right Stuff"], correct: 1 },
+
+  { cat: "Music", q: "Which Michael Jackson album, released in 1982, is the best-selling of all time?", a: ["Bad", "Off the Wall", "Thriller", "Dangerous"], correct: 2 },
+  { cat: "Music", q: "Who sang 'Like a Virgin' in 1984?", a: ["Cyndi Lauper", "Madonna", "Whitney Houston", "Pat Benatar"], correct: 1 },
+  { cat: "Music", q: "'Sweet Child o' Mine' was a hit for which band?", a: ["Bon Jovi", "Mötley Crüe", "Guns N' Roses", "Def Leppard"], correct: 2 },
+  { cat: "Music", q: "Which 1985 charity single was recorded by USA for Africa?", a: ["Do They Know It's Christmas?", "We Are the World", "That's What Friends Are For", "Hands Across America"], correct: 1 },
+  { cat: "Music", q: "What band released the album 'The Joshua Tree' in 1987?", a: ["U2", "R.E.M.", "The Police", "Simple Minds"], correct: 0 },
+  { cat: "Music", q: "Rick Astley's 1987 hit, now an internet 'prank', is called?", a: ["Together Forever", "Never Gonna Give You Up", "Whenever You Need Somebody", "Take Me to Your Heart"], correct: 1 },
+  { cat: "Music", q: "Which artist was known as 'The Material Girl'?", a: ["Cyndi Lauper", "Madonna", "Tina Turner", "Janet Jackson"], correct: 1 },
+  { cat: "Music", q: "Prince's 1984 film and album shared what name?", a: ["Sign o' the Times", "Purple Rain", "1999", "Graffiti Bridge"], correct: 1 },
+
+  { cat: "TV", q: "In 'Miami Vice', what was Crockett's pet alligator named?", a: ["Elvis", "Tubbs", "Sonny", "Chomper"], correct: 0 },
+  { cat: "TV", q: "Which sitcom featured the Huxtable family?", a: ["Family Ties", "The Cosby Show", "Growing Pains", "Diff'rent Strokes"], correct: 1 },
+  { cat: "TV", q: "What was the name of the talking car in 'Knight Rider'?", a: ["HAL", "KITT", "Christine", "Herbie"], correct: 1 },
+  { cat: "TV", q: "In 'The A-Team', who 'pities the fool'?", a: ["Hannibal", "Face", "B.A. Baracus", "Murdock"], correct: 2 },
+  { cat: "TV", q: "Which 1980s show was set in a Boston bar 'where everybody knows your name'?", a: ["Cheers", "Taxi", "Night Court", "Newhart"], correct: 0 },
+  { cat: "TV", q: "What cartoon featured a group fighting Cobra, a terrorist organization?", a: ["Transformers", "G.I. Joe", "He-Man", "Thundercats"], correct: 1 },
+  { cat: "TV", q: "In 'He-Man', what does He-Man shout to gain power?", a: ["By the power of Eternia!", "By the power of Grayskull!", "I have the power of the universe!", "Thunder, thunder!"], correct: 1 },
+
+  { cat: "Games & Tech", q: "What 1980 arcade game features a yellow character eating dots?", a: ["Donkey Kong", "Pac-Man", "Galaga", "Frogger"], correct: 1 },
+  { cat: "Games & Tech", q: "Which falling-block puzzle game was created in 1984 by Alexey Pajitnov?", a: ["Tetris", "Columns", "Dr. Mario", "Klax"], correct: 0 },
+  { cat: "Games & Tech", q: "The Nintendo Entertainment System (NES) launched in the US in what year?", a: ["1983", "1985", "1987", "1989"], correct: 1 },
+  { cat: "Games & Tech", q: "In Donkey Kong (1981), what was the hero's original name?", a: ["Mario", "Luigi", "Jumpman", "Pauline"], correct: 2 },
+  { cat: "Games & Tech", q: "What handheld toy, a colorful cube, became a craze in the early 80s?", a: ["Simon", "Rubik's Cube", "Etch A Sketch", "View-Master"], correct: 1 },
+  { cat: "Games & Tech", q: "Which home computer, released in 1982, became the best-selling of all time?", a: ["Apple II", "Commodore 64", "ZX Spectrum", "Atari 800"], correct: 1 },
+  { cat: "Games & Tech", q: "The Sony Walkman let people do what for the first time on the go?", a: ["Make calls", "Listen to cassettes privately", "Watch movies", "Play games"], correct: 1 },
+
+  { cat: "Fads & Culture", q: "What stretchy, neon clothing material was huge for 80s workout wear?", a: ["Denim", "Spandex", "Corduroy", "Flannel"], correct: 1 },
+  { cat: "Fads & Culture", q: "What collectible doll with a 'birth certificate' was a 1983 craze?", a: ["Cabbage Patch Kids", "My Little Pony", "Care Bears", "Strawberry Shortcake"], correct: 0 },
+  { cat: "Fads & Culture", q: "Which toy line had the slogan 'Robots in Disguise'?", a: ["Go-Bots", "Transformers", "Voltron", "Micronauts"], correct: 1 },
+  { cat: "Fads & Culture", q: "What hairstyle, 'business in front, party in the back', defined the decade?", a: ["The Mohawk", "The Mullet", "The Perm", "The Rat Tail"], correct: 1 },
+  { cat: "Fads & Culture", q: "MTV launched in 1981 with which message?", a: ["'I want my MTV'", "'Video Killed the Radio Star'", "'Ladies and gentlemen, rock and roll'", "'Welcome to the future'"], correct: 2 },
+
+  { cat: "History & World", q: "What major event happened to the Berlin Wall in 1989?", a: ["It was built", "It fell", "It was painted", "It was extended"], correct: 1 },
+  { cat: "History & World", q: "Who became US President in January 1981?", a: ["Jimmy Carter", "Ronald Reagan", "George H.W. Bush", "Walter Mondale"], correct: 1 },
+  { cat: "History & World", q: "The 1986 Space Shuttle disaster involved which shuttle?", a: ["Columbia", "Challenger", "Discovery", "Atlantis"], correct: 1 },
+  { cat: "History & World", q: "Which prince married Lady Diana Spencer in 1981?", a: ["Prince Andrew", "Prince Edward", "Prince Charles", "Prince Philip"], correct: 2 },
+  { cat: "History & World", q: "What Soviet leader introduced 'glasnost' and 'perestroika'?", a: ["Brezhnev", "Gorbachev", "Yeltsin", "Andropov"], correct: 1 }
+];
+
+// ---- Game state ----
+const ROUND_SIZE = 10;
+const TIME_PER_Q = 15; // seconds
+let deck = [];
+let current = 0;
+let score = 0;
+let correctCount = 0;
+let timerId = null;
+let timeLeft = 0;
+let answered = false;
+
+const $ = id => document.getElementById(id);
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  deck = shuffle(QUESTIONS).slice(0, ROUND_SIZE);
+  current = 0;
+  score = 0;
+  correctCount = 0;
+  $("start").style.display = "none";
+  $("results").style.display = "none";
+  $("quiz").style.display = "block";
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  const item = deck[current];
+  $("qcount").textContent = `Q ${current + 1} / ${ROUND_SIZE}`;
+  $("score").textContent = `Score: ${score}`;
+  $("catTag").textContent = item.cat;
+  $("questionText").textContent = item.q;
+  $("feedback").textContent = "";
+  $("feedback").className = "feedback";
+  $("nextWrap").style.display = "none";
+
+  const answersEl = $("answers");
+  answersEl.innerHTML = "";
+  const letters = ["A", "B", "C", "D"];
+  item.a.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${text}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    answersEl.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  timeLeft = TIME_PER_Q;
+  const fill = $("timerFill");
+  fill.style.width = "100%";
+  fill.style.background = "var(--neon-cyan)";
+  clearInterval(timerId);
+  const tickMs = 100;
+  timerId = setInterval(() => {
+    timeLeft -= tickMs / 1000;
+    const pct = Math.max(0, (timeLeft / TIME_PER_Q) * 100);
+    fill.style.width = pct + "%";
+    if (pct < 33) fill.style.background = "var(--neon-pink)";
+    else if (pct < 60) fill.style.background = "var(--neon-yellow)";
+    if (timeLeft <= 0) {
+      clearInterval(timerId);
+      selectAnswer(-1); // time's up
+    }
+  }, tickMs);
+}
+
+function selectAnswer(choice) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerId);
+
+  const item = deck[current];
+  const buttons = document.querySelectorAll(".answer");
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === item.correct) b.classList.add("correct");
+    else if (i === choice) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const fb = $("feedback");
+  if (choice === item.correct) {
+    const timeBonus = Math.round(timeLeft * 5);
+    const points = 100 + timeBonus;
+    score += points;
+    correctCount++;
+    $("score").textContent = `Score: ${score}`;
+    fb.textContent = `✔ RAD! +${points} (incl. +${timeBonus} speed bonus)`;
+    fb.className = "feedback good";
+  } else if (choice === -1) {
+    fb.textContent = `⏱ Time's up! Answer: ${item.a[item.correct]}`;
+    fb.className = "feedback bad";
+  } else {
+    fb.textContent = `✗ Bogus! Correct answer: ${item.a[item.correct]}`;
+    fb.className = "feedback bad";
+  }
+
+  const nextBtn = $("nextBtn");
+  nextBtn.textContent = current + 1 < ROUND_SIZE ? "Next ▶" : "See Results ▶";
+  $("nextWrap").style.display = "block";
+}
+
+function nextQuestion() {
+  current++;
+  if (current < ROUND_SIZE) {
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function showResults() {
+  $("quiz").style.display = "none";
+  $("results").style.display = "block";
+  $("finalScore").textContent = score;
+
+  const pct = correctCount / ROUND_SIZE;
+  let rank;
+  if (pct === 1) rank = "🏆 80's Legend — Totally Tubular!";
+  else if (pct >= 0.8) rank = "🕶 Radical! You're a child of the 80's.";
+  else if (pct >= 0.6) rank = "📼 Not bad, dude. Solid VHS energy.";
+  else if (pct >= 0.4) rank = "🎸 Eh, gnarly effort. Keep practicing.";
+  else rank = "💾 Bogus run... were you even there?";
+  $("rankText").textContent = rank;
+  $("recap").textContent = `You nailed ${correctCount} of ${ROUND_SIZE} questions for ${score} points.`;
+}
+
+// Keyboard support: 1-4 / A-D to answer, Enter/Space to advance
+document.addEventListener("keydown", (e) => {
+  if ($("quiz").style.display !== "block") return;
+  if (!answered) {
+    const map = { "1": 0, "2": 1, "3": 2, "4": 3, "a": 0, "b": 1, "c": 2, "d": 3 };
+    const k = e.key.toLowerCase();
+    if (k in map) {
+      const btn = document.querySelectorAll(".answer")[map[k]];
+      if (btn) btn.click();
+    }
+  } else if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    $("nextBtn").click();
+  }
+});
+</script>
+</body>
+</html>
