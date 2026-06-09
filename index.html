@@ -191,6 +191,80 @@
     margin-bottom: 24px;
     line-height: 1.4;
   }
+
+  /* setup */
+  .setup-block { margin-bottom: 24px; }
+  .setup-label {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .stepper button {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    background: var(--neon-purple);
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: bold;
+    box-shadow: 0 0 10px var(--neon-purple);
+  }
+  .stepper button:hover { background: var(--neon-pink); box-shadow: 0 0 14px var(--neon-pink); }
+  .stepper .value { font-size: 1.8rem; color: var(--neon-yellow); min-width: 48px; text-align: center; }
+  .name-inputs { display: grid; gap: 10px; }
+  .name-inputs input {
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 2px solid var(--neon-cyan);
+    background: rgba(5, 217, 232, 0.08);
+    color: #fff;
+  }
+  .name-inputs input:focus { outline: none; border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+  .name-inputs input::placeholder { color: #9a8fc0; }
+
+  /* scoreboard chips */
+  .scoreboard { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .chip {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    letter-spacing: 1px;
+  }
+  .chip.active { background: var(--neon-pink); border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); color: #fff; }
+  .chip .pts { color: var(--neon-yellow); }
+  .chip.active .pts { color: #fff; }
+
+  /* pass-the-device screen */
+  .pass-name {
+    text-align: center;
+    font-size: 2.2rem;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 12px var(--neon-pink);
+    margin: 20px 0;
+    text-transform: uppercase;
+  }
+
+  /* leaderboard */
+  .leaderboard { display: grid; gap: 10px; margin-bottom: 24px; }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(5, 217, 232, 0.08);
+    border: 2px solid var(--neon-cyan);
+  }
+  .lb-row.winner { border-color: var(--neon-yellow); box-shadow: 0 0 14px var(--neon-yellow); }
+  .lb-row .lb-name { letter-spacing: 1px; }
+  .lb-row .lb-pts { color: var(--neon-yellow); font-weight: bold; }
 </style>
 </head>
 <body>
@@ -202,19 +276,54 @@
   <div id="start" class="screen">
     <p class="lead">
       Crank up the synth and tease your neon-soaked brain.<br>
-      10 random questions from the decade of big hair,
-      bigger movies, and the birth of the video game.<br><br>
-      No clock, no pressure — just answer and rack up points.
+      Random questions from the decade of big hair, bigger movies,
+      and the birth of the video game.<br><br>
+      Play solo or pass the device around with friends —
+      no clock, no pressure.
     </p>
-    <button class="btn-primary" onclick="startGame()">Insert Coin ▶</button>
+    <button class="btn-primary" onclick="gotoSetup()">Insert Coin ▶</button>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup" class="screen" style="display:none;">
+    <div class="setup-block">
+      <div class="setup-label">Players</div>
+      <div class="stepper">
+        <button onclick="changePlayers(-1)">−</button>
+        <span class="value" id="playerCount">1</span>
+        <button onclick="changePlayers(1)">+</button>
+      </div>
+    </div>
+    <div class="setup-block">
+      <div class="setup-label">Names</div>
+      <div class="name-inputs" id="nameInputs"></div>
+    </div>
+    <div class="setup-block">
+      <div class="setup-label">Questions per player</div>
+      <div class="stepper">
+        <button onclick="changeQPP(-1)">−</button>
+        <span class="value" id="qppCount">5</span>
+        <button onclick="changeQPP(1)">+</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="startGame()">Start Game ▶</button>
+  </div>
+
+  <!-- PASS THE DEVICE -->
+  <div id="pass" class="screen" style="display:none;">
+    <p class="lead" style="margin-bottom:8px;">Pass the device to</p>
+    <div class="pass-name" id="passName">Player</div>
+    <p class="lead" id="passProgress"></p>
+    <button class="btn-primary" onclick="beginTurn()">I'm Ready ▶</button>
   </div>
 
   <!-- QUIZ -->
   <div id="quiz" class="screen" style="display:none;">
     <div class="hud">
       <span class="qcount" id="qcount">Q 1 / 10</span>
-      <span class="score" id="score">Score: 0</span>
+      <span class="score" id="turnIndicator">Score: 0</span>
     </div>
+    <div class="scoreboard" id="scoreboard"></div>
     <span class="category-tag" id="catTag">Movies</span>
     <div class="question" id="questionText"></div>
     <div class="answers" id="answers"></div>
@@ -226,11 +335,12 @@
 
   <!-- RESULTS -->
   <div id="results" class="screen" style="display:none;">
-    <div class="rank" style="margin-top:10px;">Game Over</div>
+    <div class="rank" style="margin-top:10px;" id="resultsTitle">Game Over</div>
     <div class="final-score" id="finalScore">0</div>
+    <div class="leaderboard" id="leaderboard"></div>
     <div class="rank" id="rankText"></div>
     <p class="lead" id="recap"></p>
-    <button class="btn-primary" onclick="startGame()">Play Again ↻</button>
+    <button class="btn-primary" onclick="gotoSetup()">Play Again ↻</button>
   </div>
 </div>
 
@@ -285,11 +395,13 @@ const QUESTIONS = [
 ];
 
 // ---- Game state ----
-const ROUND_SIZE = 10;
+const MAX_PLAYERS = 6;
+const MIN_QPP = 3, MAX_QPP = 10;
+let numPlayers = 1;
+let qpp = 5;               // questions per player
+let players = [];          // [{ name, score, correct, asked }]
 let deck = [];
-let current = 0;
-let score = 0;
-let correctCount = 0;
+let current = 0;           // index into deck; player = current % players.length
 let answered = false;
 
 const $ = id => document.getElementById(id);
@@ -303,13 +415,65 @@ function shuffle(arr) {
   return a;
 }
 
+// ---- Setup ----
+function gotoSetup() {
+  ["start", "quiz", "pass", "results"].forEach(id => $(id).style.display = "none");
+  $("setup").style.display = "block";
+  renderNameInputs();
+}
+
+function changePlayers(d) {
+  numPlayers = Math.min(MAX_PLAYERS, Math.max(1, numPlayers + d));
+  $("playerCount").textContent = numPlayers;
+  renderNameInputs();
+}
+
+function changeQPP(d) {
+  qpp = Math.min(MAX_QPP, Math.max(MIN_QPP, qpp + d));
+  $("qppCount").textContent = qpp;
+}
+
+function renderNameInputs() {
+  const wrap = $("nameInputs");
+  const existing = [];
+  wrap.querySelectorAll("input").forEach(inp => existing.push(inp.value));
+  wrap.innerHTML = "";
+  for (let i = 0; i < numPlayers; i++) {
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.maxLength = 16;
+    inp.placeholder = `Player ${i + 1}`;
+    if (existing[i]) inp.value = existing[i];
+    wrap.appendChild(inp);
+  }
+}
+
 function startGame() {
-  deck = shuffle(QUESTIONS).slice(0, ROUND_SIZE);
+  players = [];
+  $("nameInputs").querySelectorAll("input").forEach((inp, i) => {
+    players.push({ name: inp.value.trim() || `Player ${i + 1}`, score: 0, correct: 0, asked: 0 });
+  });
+  const total = Math.min(players.length * qpp, QUESTIONS.length);
+  deck = shuffle(QUESTIONS).slice(0, total);
   current = 0;
-  score = 0;
-  correctCount = 0;
-  $("start").style.display = "none";
+  $("setup").style.display = "none";
   $("results").style.display = "none";
+  startTurn();
+}
+
+function currentPlayer() { return players[current % players.length]; }
+
+// ---- Turns ----
+function startTurn() {
+  if (players.length === 1) { beginTurn(); return; }  // solo: skip the pass screen
+  $("quiz").style.display = "none";
+  $("pass").style.display = "block";
+  $("passName").textContent = currentPlayer().name;
+  $("passProgress").textContent = `Question ${current + 1} of ${deck.length}`;
+}
+
+function beginTurn() {
+  $("pass").style.display = "none";
   $("quiz").style.display = "block";
   renderQuestion();
 }
@@ -317,13 +481,15 @@ function startGame() {
 function renderQuestion() {
   answered = false;
   const item = deck[current];
-  $("qcount").textContent = `Q ${current + 1} / ${ROUND_SIZE}`;
-  $("score").textContent = `Score: ${score}`;
+  const p = currentPlayer();
+  $("qcount").textContent = `Q ${current + 1} / ${deck.length}`;
+  $("turnIndicator").textContent = players.length > 1 ? `👉 ${p.name}` : `Score: ${p.score}`;
   $("catTag").textContent = item.cat;
   $("questionText").textContent = item.q;
   $("feedback").textContent = "";
   $("feedback").className = "feedback";
   $("nextWrap").style.display = "none";
+  renderScoreboard();
 
   const answersEl = $("answers");
   answersEl.innerHTML = "";
@@ -337,11 +503,28 @@ function renderQuestion() {
   });
 }
 
+function renderScoreboard() {
+  const sb = $("scoreboard");
+  if (players.length < 2) { sb.style.display = "none"; return; }
+  sb.style.display = "flex";
+  sb.innerHTML = "";
+  const activeIdx = current % players.length;
+  players.forEach((p, i) => {
+    const chip = document.createElement("span");
+    chip.className = "chip" + (i === activeIdx ? " active" : "");
+    chip.innerHTML = `${p.name} <span class="pts">${p.score}</span>`;
+    sb.appendChild(chip);
+  });
+}
+
 function selectAnswer(choice) {
   if (answered) return;
   answered = true;
 
   const item = deck[current];
+  const p = currentPlayer();
+  p.asked++;
+
   const buttons = document.querySelectorAll(".answer");
   buttons.forEach((b, i) => {
     b.disabled = true;
@@ -352,9 +535,8 @@ function selectAnswer(choice) {
 
   const fb = $("feedback");
   if (choice === item.correct) {
-    score += 100;
-    correctCount++;
-    $("score").textContent = `Score: ${score}`;
+    p.score += 100;
+    p.correct++;
     fb.textContent = `✔ RAD! +100`;
     fb.className = "feedback good";
   } else {
@@ -362,38 +544,71 @@ function selectAnswer(choice) {
     fb.className = "feedback bad";
   }
 
-  const nextBtn = $("nextBtn");
-  nextBtn.textContent = current + 1 < ROUND_SIZE ? "Next ▶" : "See Results ▶";
+  if (players.length === 1) $("turnIndicator").textContent = `Score: ${p.score}`;
+  renderScoreboard();
+
+  $("nextBtn").textContent = current + 1 < deck.length ? "Next ▶" : "See Results ▶";
   $("nextWrap").style.display = "block";
 }
 
 function nextQuestion() {
   current++;
-  if (current < ROUND_SIZE) {
-    renderQuestion();
-  } else {
-    showResults();
-  }
+  if (current < deck.length) startTurn();
+  else showResults();
+}
+
+function rankFor(pct) {
+  if (pct === 1) return "🏆 80's Legend — Totally Tubular!";
+  if (pct >= 0.8) return "🕶 Radical! You're a child of the 80's.";
+  if (pct >= 0.6) return "📼 Not bad, dude. Solid VHS energy.";
+  if (pct >= 0.4) return "🎸 Eh, gnarly effort. Keep practicing.";
+  return "💾 Bogus run... were you even there?";
 }
 
 function showResults() {
   $("quiz").style.display = "none";
   $("results").style.display = "block";
-  $("finalScore").textContent = score;
 
-  const pct = correctCount / ROUND_SIZE;
-  let rank;
-  if (pct === 1) rank = "🏆 80's Legend — Totally Tubular!";
-  else if (pct >= 0.8) rank = "🕶 Radical! You're a child of the 80's.";
-  else if (pct >= 0.6) rank = "📼 Not bad, dude. Solid VHS energy.";
-  else if (pct >= 0.4) rank = "🎸 Eh, gnarly effort. Keep practicing.";
-  else rank = "💾 Bogus run... were you even there?";
-  $("rankText").textContent = rank;
-  $("recap").textContent = `You nailed ${correctCount} of ${ROUND_SIZE} questions for ${score} points.`;
+  // Solo
+  if (players.length === 1) {
+    const p = players[0];
+    $("resultsTitle").textContent = "Game Over";
+    $("finalScore").style.display = "block";
+    $("finalScore").textContent = p.score;
+    $("leaderboard").style.display = "none";
+    $("rankText").textContent = rankFor(p.asked ? p.correct / p.asked : 0);
+    $("recap").textContent = `You nailed ${p.correct} of ${p.asked} questions for ${p.score} points.`;
+    return;
+  }
+
+  // Multiplayer leaderboard
+  const sorted = players.slice().sort((a, b) => b.score - a.score);
+  const top = sorted[0].score;
+  const winners = sorted.filter(p => p.score === top);
+  $("finalScore").style.display = "none";
+  $("rankText").textContent = "";
+  $("recap").textContent = "";
+  $("resultsTitle").textContent = winners.length > 1 ? "It's a Tie!" : `${sorted[0].name} Wins!`;
+
+  const lb = $("leaderboard");
+  lb.style.display = "grid";
+  lb.innerHTML = "";
+  sorted.forEach((p, rank) => {
+    const row = document.createElement("div");
+    row.className = "lb-row" + (p.score === top ? " winner" : "");
+    const badge = p.score === top ? "👑 " : `${rank + 1}. `;
+    row.innerHTML = `<span class="lb-name">${badge}${p.name}</span>` +
+                    `<span class="lb-pts">${p.score} pts · ${p.correct}/${p.asked}</span>`;
+    lb.appendChild(row);
+  });
 }
 
-// Keyboard support: 1-4 / A-D to answer, Enter/Space to advance
+// Keyboard support: 1-4 / A-D to answer, Enter/Space to advance or pass
 document.addEventListener("keydown", (e) => {
+  if ($("pass").style.display === "block") {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); beginTurn(); }
+    return;
+  }
   if ($("quiz").style.display !== "block") return;
   if (!answered) {
     const map = { "1": 0, "2": 1, "3": 2, "4": 3, "a": 0, "b": 1, "c": 2, "d": 3 };
