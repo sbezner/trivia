@@ -1,0 +1,14 @@
+{
+  "name": "rad-trivia",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Online Kahoot-style 80's trivia, powered by PartyKit on Cloudflare",
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
+  },
+  "devDependencies": {
+    "partykit": "^0.0.111"
+  }
+}

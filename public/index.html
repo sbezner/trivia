@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Totally Rad 80's Trivia — Online</title>
+<style>
+  :root {
+    --neon-pink: #ff2e88;
+    --neon-cyan: #05d9e8;
+    --neon-purple: #b537f2;
+    --neon-yellow: #f9f002;
+    --dark: #0d0221;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Courier New', monospace;
+    background: var(--dark);
+    background-image:
+      linear-gradient(rgba(181, 55, 242, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(181, 55, 242, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+  body::after {
+    content: ""; position: fixed; bottom: 0; left: 0; right: 0; height: 40vh;
+    background: linear-gradient(to top, rgba(255, 46, 136, 0.25), transparent);
+    pointer-events: none; z-index: 0;
+  }
+  .game {
+    position: relative; z-index: 1; width: 100%; max-width: 640px;
+    background: rgba(26, 11, 61, 0.85);
+    border: 2px solid var(--neon-cyan); border-radius: 12px;
+    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 30px rgba(5, 217, 232, 0.1);
+    padding: 32px;
+  }
+  h1 {
+    text-align: center; font-size: clamp(1.6rem, 5.5vw, 2.6rem); line-height: 1.1;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-pink), 3px 3px 0 var(--neon-pink), 6px 6px 0 var(--neon-purple);
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center; color: var(--neon-cyan); letter-spacing: 4px;
+    font-size: 0.75rem; margin-bottom: 24px; text-transform: uppercase;
+  }
+  .screen { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  p.lead { text-align: center; line-height: 1.6; margin-bottom: 20px; color: #d8c7ff; }
+
+  button { font-family: inherit; cursor: pointer; border: none; transition: all 0.15s ease; }
+  .btn-primary {
+    display: block; width: 100%; background: var(--neon-pink); color: #fff;
+    font-size: 1.05rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
+    padding: 15px; border-radius: 8px; box-shadow: 0 0 12px var(--neon-pink); margin-top: 8px;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--neon-purple); box-shadow: 0 0 18px var(--neon-purple); transform: translateY(-2px); }
+  .btn-primary:disabled { opacity: 0.45; cursor: default; }
+  .btn-ghost {
+    display: block; width: 100%; background: transparent; color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan); font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;
+    padding: 13px; border-radius: 8px; margin-top: 8px;
+  }
+  .btn-ghost:hover { background: rgba(5,217,232,0.12); }
+
+  input.field {
+    font-family: inherit; font-size: 1rem; width: 100%; padding: 13px 15px; border-radius: 8px;
+    border: 2px solid var(--neon-cyan); background: rgba(5, 217, 232, 0.08); color: #fff; margin-bottom: 10px;
+  }
+  input.field:focus { outline: none; border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+  input.field::placeholder { color: #9a8fc0; }
+  input.code { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-size: 1.4rem; }
+
+  .divider { text-align: center; color: #6f6396; letter-spacing: 3px; margin: 18px 0; font-size: 0.8rem; }
+
+  .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+  .hud .qcount { color: var(--neon-cyan); }
+  .hud .answered { color: var(--neon-yellow); }
+
+  .category-tag { display: inline-block; background: var(--neon-purple); color: #fff; font-size: 0.7rem;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; }
+
+  .question { font-size: 1.2rem; line-height: 1.5; margin-bottom: 22px; }
+
+  .answers { display: grid; gap: 12px; }
+  .answer {
+    text-align: left; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan);
+    color: #fff; font-size: 1rem; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; gap: 12px;
+  }
+  .answer:hover:not(:disabled) { background: rgba(5, 217, 232, 0.25); transform: translateX(4px); }
+  .answer .letter { font-weight: bold; color: var(--neon-yellow); flex-shrink: 0; }
+  .answer:disabled { cursor: default; }
+  .answer.correct { background: rgba(57, 255, 20, 0.2); border-color: #39ff14; box-shadow: 0 0 12px #39ff14; }
+  .answer.wrong { background: rgba(255, 46, 136, 0.2); border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
+  .answer.picked { outline: 2px dashed var(--neon-yellow); outline-offset: 2px; }
+  .answer.dim { opacity: 0.4; }
+
+  .note { text-align: center; margin-top: 18px; min-height: 22px; font-size: 0.95rem; letter-spacing: 1px; color: var(--neon-cyan); }
+
+  /* room code display */
+  .roomcode-label { text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); margin-bottom: 6px; }
+  .roomcode { text-align: center; font-size: 2.6rem; letter-spacing: 10px; color: var(--neon-yellow);
+    text-shadow: 0 0 12px var(--neon-pink); margin-bottom: 6px; }
+
+  /* player list */
+  .players { display: grid; gap: 8px; margin: 18px 0; }
+  .player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+    border-radius: 8px; background: rgba(5,217,232,0.08); border: 1px solid rgba(255,255,255,0.15); letter-spacing: 1px; }
+  .player-row.me { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255,46,136,0.5); }
+  .player-row .pts { color: var(--neon-yellow); font-weight: bold; }
+  .badge { font-size: 0.65rem; background: var(--neon-purple); padding: 2px 7px; border-radius: 10px; margin-left: 8px; letter-spacing: 1px; }
+  .status-dot { font-size: 0.85rem; }
+
+  /* stepper */
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 8px 0 4px; }
+  .stepper button { width: 40px; height: 40px; border-radius: 8px; background: var(--neon-purple); color: #fff;
+    font-size: 1.3rem; font-weight: bold; box-shadow: 0 0 10px var(--neon-purple); }
+  .stepper button:hover { background: var(--neon-pink); }
+  .stepper .value { font-size: 1.6rem; color: var(--neon-yellow); min-width: 44px; text-align: center; }
+  .setup-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); text-align: center; }
+
+  /* leaderboard */
+  .leaderboard { display: grid; gap: 10px; margin-bottom: 20px; }
+  .lb-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+    border-radius: 8px; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan); }
+  .lb-row.winner { border-color: var(--neon-yellow); box-shadow: 0 0 14px var(--neon-yellow); }
+  .lb-row .lb-pts { color: var(--neon-yellow); font-weight: bold; }
+
+  .conn { position: fixed; top: 10px; right: 14px; z-index: 5; font-size: 0.7rem; letter-spacing: 1px;
+    text-transform: uppercase; color: #6f6396; }
+  .conn.online { color: #39ff14; }
+  .conn.offline { color: var(--neon-pink); }
+
+  .results-title { text-align: center; font-size: 1.5rem; color: var(--neon-cyan); text-transform: uppercase;
+    letter-spacing: 2px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<div class="conn" id="conn">● offline</div>
+<div class="game">
+  <h1>80's Trivia</h1>
+  <div class="subtitle">★ Online · Play Together ★</div>
+
+  <!-- LANDING -->
+  <div id="landing" class="screen">
+    <p class="lead">
+      Play live with friends on their own phones.<br>
+      Host a game and share the 4-letter code, or punch in a code to join.
+    </p>
+    <input class="field" id="nameInput" type="text" maxlength="16" placeholder="Your name">
+    <button class="btn-primary" onclick="hostGame()">Host New Game ▶</button>
+    <div class="divider">— OR JOIN ONE —</div>
+    <input class="field code" id="codeInput" type="text" maxlength="4" placeholder="CODE">
+    <button class="btn-ghost" onclick="joinGame()">Join Game</button>
+  </div>
+
+  <!-- LOBBY -->
+  <div id="lobby" class="screen" style="display:none;">
+    <div class="roomcode-label">Room Code</div>
+    <div class="roomcode" id="roomCode">----</div>
+    <button class="btn-ghost" id="copyBtn" onclick="copyInvite()" style="margin-bottom:6px;">Copy Invite Link</button>
+    <div class="players" id="lobbyPlayers"></div>
+    <div id="hostControls" style="display:none;">
+      <div class="setup-label">Questions per player</div>
+      <div class="stepper">
+        <button onclick="changeQPP(-1)">−</button>
+        <span class="value" id="qppVal">5</span>
+        <button onclick="changeQPP(1)">+</button>
+      </div>
+      <button class="btn-primary" id="startBtn" onclick="startGame()">Start Game ▶</button>
+    </div>
+    <div class="note" id="lobbyNote"></div>
+  </div>
+
+  <!-- GAME (question + reveal) -->
+  <div id="game" class="screen" style="display:none;">
+    <div class="hud">
+      <span class="qcount" id="qcount">Q 1 / 10</span>
+      <span class="answered" id="answeredCount"></span>
+    </div>
+    <span class="category-tag" id="catTag">Movies</span>
+    <div class="question" id="questionText"></div>
+    <div class="answers" id="answers"></div>
+    <div class="note" id="gameNote"></div>
+    <div class="players" id="gamePlayers" style="margin-top:18px;"></div>
+    <div id="gameHostControls"></div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div id="over" class="screen" style="display:none;">
+    <div class="results-title" id="overTitle">Game Over</div>
+    <div class="leaderboard" id="leaderboard"></div>
+    <div id="overHostControls"></div>
+    <div class="note" id="overNote"></div>
+  </div>
+</div>
+
+<script type="module">
+import PartySocket from "https://esm.sh/partysocket@1.0.2";
+
+const $ = id => document.getElementById(id);
+const LETTERS = ["A", "B", "C", "D"];
+
+let socket = null;
+let myId = null;
+let myName = "Player";
+let myChoice = null;     // my pick for the current question (local echo)
+let lastIndex = -1;
+let qpp = 5;
+let state = null;
+let roomCode = "";
+
+// ---- connection ----
+function randomCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no easily-confused chars
+  let c = "";
+  for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
+  return c;
+}
+
+function setConn(status) {
+  const el = $("conn");
+  el.className = "conn " + status;
+  el.textContent = status === "online" ? "● connected" : "● reconnecting…";
+}
+
+function connect(code) {
+  roomCode = code.toUpperCase();
+  myChoice = null; lastIndex = -1;
+  socket = new PartySocket({ host: location.host, room: roomCode });
+  socket.addEventListener("open", () => {
+    setConn("online");
+    socket.send(JSON.stringify({ type: "join", name: myName }));
+  });
+  socket.addEventListener("close", () => setConn("offline"));
+  socket.addEventListener("error", () => setConn("offline"));
+  socket.addEventListener("message", (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "welcome") { myId = msg.id; return; }
+    if (msg.type === "state") { state = msg; render(); }
+  });
+}
+
+const isHost = () => state && myId && myId === state.hostId;
+
+// ---- landing actions ----
+window.hostGame = () => {
+  myName = $("nameInput").value.trim().slice(0, 16) || "Player";
+  connect(randomCode());
+  showScreen("lobby");
+};
+
+window.joinGame = () => {
+  const code = $("codeInput").value.trim().toUpperCase();
+  if (code.length !== 4) { alert("Enter the 4-letter room code."); return; }
+  myName = $("nameInput").value.trim().slice(0, 16) || "Player";
+  connect(code);
+  showScreen("lobby");
+};
+
+window.copyInvite = () => {
+  const url = `${location.origin}${location.pathname}?room=${roomCode}`;
+  navigator.clipboard?.writeText(url).then(
+    () => { $("copyBtn").textContent = "Copied! ✓"; setTimeout(() => $("copyBtn").textContent = "Copy Invite Link", 1500); },
+    () => prompt("Copy this invite link:", url)
+  );
+};
+
+window.changeQPP = (d) => { qpp = Math.min(10, Math.max(3, qpp + d)); $("qppVal").textContent = qpp; };
+window.startGame = () => socket?.send(JSON.stringify({ type: "start", qpp }));
+window.sendAnswer = (choice) => {
+  if (myChoice !== null) return;
+  myChoice = choice;
+  socket?.send(JSON.stringify({ type: "answer", choice }));
+  render();
+};
+window.hostReveal = () => socket?.send(JSON.stringify({ type: "reveal" }));
+window.hostNext = () => socket?.send(JSON.stringify({ type: "next" }));
+window.hostRestart = () => socket?.send(JSON.stringify({ type: "restart" }));
+
+// ---- rendering ----
+function showScreen(id) {
+  ["landing", "lobby", "game", "over"].forEach(s => $(s).style.display = s === id ? "block" : "none");
+}
+
+function render() {
+  if (!state) return;
+  if (state.index !== lastIndex) { myChoice = null; lastIndex = state.index; }
+  if (state.phase === "lobby") { renderLobby(); showScreen("lobby"); }
+  else if (state.phase === "question" || state.phase === "reveal") { renderGame(); showScreen("game"); }
+  else if (state.phase === "gameover") { renderOver(); showScreen("over"); }
+}
+
+function playerRow(p, opts = {}) {
+  const me = p.id === myId ? '<span class="badge">YOU</span>' : "";
+  const host = p.id === state.hostId ? '<span class="badge">HOST</span>' : "";
+  let right;
+  if (opts.showScore) right = `<span class="pts">${p.score}</span>`;
+  else if (opts.showAnswered) right = `<span class="status-dot">${p.answered ? "✓" : "…"}</span>`;
+  else right = "";
+  return `<div class="player-row ${p.id === myId ? "me" : ""}">
+            <span>${escapeHtml(p.name)}${me}${host}</span><span>${right}</span>
+          </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function renderLobby() {
+  $("roomCode").textContent = roomCode;
+  $("lobbyPlayers").innerHTML = state.players.map(p => playerRow(p)).join("");
+  if (isHost()) {
+    $("hostControls").style.display = "block";
+    $("startBtn").disabled = state.players.length < 1;
+    $("lobbyNote").textContent = state.players.length < 2 ? "Share the code — you can also play solo." : "";
+  } else {
+    $("hostControls").style.display = "none";
+    $("lobbyNote").textContent = "Waiting for the host to start…";
+  }
+}
+
+function renderGame() {
+  const reveal = state.phase === "reveal";
+  $("qcount").textContent = `Q ${state.index + 1} / ${state.total}`;
+  const answered = state.players.filter(p => p.answered).length;
+  $("answeredCount").textContent = reveal ? "" : `${answered}/${state.players.length} answered`;
+  $("catTag").textContent = state.question.cat;
+  $("questionText").textContent = state.question.q;
+
+  const me = state.players.find(p => p.id === myId);
+  const myReveal = me && me.choice !== null && me.choice !== undefined ? me.choice : myChoice;
+
+  const answersEl = $("answers");
+  answersEl.innerHTML = "";
+  state.question.a.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.innerHTML = `<span class="letter">${LETTERS[i]}</span><span>${escapeHtml(text)}</span>`;
+    if (reveal) {
+      btn.disabled = true;
+      if (i === state.correct) btn.classList.add("correct");
+      else if (i === myReveal) btn.classList.add("wrong");
+      else btn.classList.add("dim");
+    } else if (myChoice !== null) {
+      btn.disabled = true;
+      if (i === myChoice) btn.classList.add("picked");
+      else btn.classList.add("dim");
+    } else {
+      btn.onclick = () => window.sendAnswer(i);
+    }
+    answersEl.appendChild(btn);
+  });
+
+  // note
+  if (reveal) {
+    $("gameNote").textContent = me && me.correct ? "✔ RAD! +100" : "✗ Bogus!";
+    $("gameNote").style.color = me && me.correct ? "#39ff14" : "var(--neon-pink)";
+  } else if (myChoice !== null) {
+    $("gameNote").textContent = "✓ Locked in — waiting for the others…";
+    $("gameNote").style.color = "var(--neon-cyan)";
+  } else {
+    $("gameNote").textContent = "Pick your answer!";
+    $("gameNote").style.color = "var(--neon-cyan)";
+  }
+
+  // live scoreboard
+  const sorted = state.players.slice().sort((a, b) => b.score - a.score);
+  $("gamePlayers").innerHTML = sorted.map(p =>
+    playerRow(p, reveal ? { showScore: true } : { showAnswered: true })).join("");
+
+  // host controls
+  const hc = $("gameHostControls");
+  if (isHost()) {
+    if (reveal) {
+      const last = state.index + 1 >= state.total;
+      hc.innerHTML = `<button class="btn-primary" onclick="hostNext()">${last ? "See Results ▶" : "Next ▶"}</button>`;
+    } else {
+      hc.innerHTML = `<button class="btn-ghost" onclick="hostReveal()">Reveal Answers</button>`;
+    }
+  } else {
+    hc.innerHTML = reveal ? `<div class="note">Waiting for host…</div>` : "";
+  }
+}
+
+function renderOver() {
+  const sorted = state.players.slice().sort((a, b) => b.score - a.score);
+  const top = sorted.length ? sorted[0].score : 0;
+  const winners = sorted.filter(p => p.score === top);
+  $("overTitle").textContent = winners.length > 1 ? "It's a Tie!" : (sorted[0] ? `${escapeHtml(sorted[0].name)} Wins!` : "Game Over");
+  $("leaderboard").innerHTML = sorted.map((p, rank) => {
+    const badge = p.score === top ? "👑 " : `${rank + 1}. `;
+    const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
+    return `<div class="lb-row ${p.score === top ? "winner" : ""}">
+              <span>${badge}${escapeHtml(p.name)}${you}</span>
+              <span class="lb-pts">${p.score} pts</span>
+            </div>`;
+  }).join("");
+  $("overHostControls").innerHTML = isHost()
+    ? `<button class="btn-primary" onclick="hostRestart()">Play Again ↻</button>` : "";
+  $("overNote").textContent = isHost() ? "" : "Waiting for host to start a new game…";
+}
+
+// Prefill room code from ?room= invite links
+const params = new URLSearchParams(location.search);
+if (params.get("room")) $("codeInput").value = params.get("room").toUpperCase().slice(0, 4);
+</script>
+</body>
+</html>

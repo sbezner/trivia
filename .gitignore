@@ -1,0 +1,4 @@
+node_modules/
+.partykit/
+*.log
+.DS_Store

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://www.partykit.io/schema.json",
+  "name": "rad-trivia",
+  "main": "party/server.js",
+  "serve": "public",
+  "compatibilityDate": "2024-09-01"
+}
