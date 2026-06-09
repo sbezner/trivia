@@ -13,8 +13,8 @@ Or play it live via GitHub Pages once enabled: **Settings → Pages → Deploy f
 ## Features
 
 - 👥 **Pass-and-play multiplayer** (1–6 players) — take turns on one device, with a "pass the device" hand-off between turns
-- 🎲 Random questions from a 40-question bank (pick 3–10 questions per player)
-- 🗂️ Six categories: Movies, Music, TV, Games & Tech, Fads & Culture, History & World
+- 🎲 Random questions from a 90+ question bank (pick 3–10 questions per player)
+- 🗂️ Seven categories: Movies, Music, TV, Games & Tech, Fads & Culture, History & World, Sports
 - 🟰 Live scoreboard during play and a final leaderboard with a winner (handles ties)
 - ✅ Instant feedback with the correct answer — no clock, no time pressure
 - 🏆 Solo runs get an 80's "rank" (from *Bogus run* to *80's Legend*)
