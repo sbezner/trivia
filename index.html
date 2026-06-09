@@ -130,23 +130,6 @@
     margin-bottom: 14px;
   }
 
-  /* timer bar */
-  .timer-track {
-    width: 100%;
-    height: 8px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .timer-fill {
-    height: 100%;
-    width: 100%;
-    background: var(--neon-cyan);
-    box-shadow: 0 0 8px var(--neon-cyan);
-    transition: width 0.1s linear, background 0.3s;
-  }
-
   .question {
     font-size: 1.25rem;
     line-height: 1.5;
@@ -221,7 +204,7 @@
       Crank up the synth and tease your neon-soaked brain.<br>
       10 random questions from the decade of big hair,
       bigger movies, and the birth of the video game.<br><br>
-      Answer fast — the timer means bonus points!
+      No clock, no pressure — just answer and rack up points.
     </p>
     <button class="btn-primary" onclick="startGame()">Insert Coin ▶</button>
   </div>
@@ -232,7 +215,6 @@
       <span class="qcount" id="qcount">Q 1 / 10</span>
       <span class="score" id="score">Score: 0</span>
     </div>
-    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
     <span class="category-tag" id="catTag">Movies</span>
     <div class="question" id="questionText"></div>
     <div class="answers" id="answers"></div>
@@ -304,13 +286,10 @@ const QUESTIONS = [
 
 // ---- Game state ----
 const ROUND_SIZE = 10;
-const TIME_PER_Q = 15; // seconds
 let deck = [];
 let current = 0;
 let score = 0;
 let correctCount = 0;
-let timerId = null;
-let timeLeft = 0;
 let answered = false;
 
 const $ = id => document.getElementById(id);
@@ -356,34 +335,11 @@ function renderQuestion() {
     btn.onclick = () => selectAnswer(i);
     answersEl.appendChild(btn);
   });
-
-  startTimer();
-}
-
-function startTimer() {
-  timeLeft = TIME_PER_Q;
-  const fill = $("timerFill");
-  fill.style.width = "100%";
-  fill.style.background = "var(--neon-cyan)";
-  clearInterval(timerId);
-  const tickMs = 100;
-  timerId = setInterval(() => {
-    timeLeft -= tickMs / 1000;
-    const pct = Math.max(0, (timeLeft / TIME_PER_Q) * 100);
-    fill.style.width = pct + "%";
-    if (pct < 33) fill.style.background = "var(--neon-pink)";
-    else if (pct < 60) fill.style.background = "var(--neon-yellow)";
-    if (timeLeft <= 0) {
-      clearInterval(timerId);
-      selectAnswer(-1); // time's up
-    }
-  }, tickMs);
 }
 
 function selectAnswer(choice) {
   if (answered) return;
   answered = true;
-  clearInterval(timerId);
 
   const item = deck[current];
   const buttons = document.querySelectorAll(".answer");
@@ -396,16 +352,11 @@ function selectAnswer(choice) {
 
   const fb = $("feedback");
   if (choice === item.correct) {
-    const timeBonus = Math.round(timeLeft * 5);
-    const points = 100 + timeBonus;
-    score += points;
+    score += 100;
     correctCount++;
     $("score").textContent = `Score: ${score}`;
-    fb.textContent = `✔ RAD! +${points} (incl. +${timeBonus} speed bonus)`;
+    fb.textContent = `✔ RAD! +100`;
     fb.className = "feedback good";
-  } else if (choice === -1) {
-    fb.textContent = `⏱ Time's up! Answer: ${item.a[item.correct]}`;
-    fb.className = "feedback bad";
   } else {
     fb.textContent = `✗ Bogus! Correct answer: ${item.a[item.correct]}`;
     fb.className = "feedback bad";
