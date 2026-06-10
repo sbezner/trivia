@@ -226,7 +226,7 @@
     <div class="note" id="overNote"></div>
   </div>
 
-  <div class="version" id="version">v4</div>
+  <div class="version" id="version">v5</div>
 </div>
 
 <script type="module">
@@ -240,6 +240,8 @@ let myId = null;
 let myName = "Player";
 let myChoice = null;     // my pick for the current question (local echo)
 let lastIndex = -1;
+let lastSig = "";        // signature of MY question view; skip rebuild when unchanged
+let currentScreen = null;
 let qpp = 5;
 let state = null;
 let roomCode = "";
@@ -345,6 +347,8 @@ window.hostRestart = () => socket?.send(JSON.stringify({ type: "restart" }));
 
 // ---- rendering ----
 function showScreen(id) {
+  if (currentScreen === id) return;   // already showing — don't re-trigger the fade-in
+  currentScreen = id;
   ["landing", "lobby", "game", "over"].forEach(s => $(s).style.display = s === id ? "block" : "none");
 }
 
@@ -352,9 +356,27 @@ function render() {
   if (!state) return;
   // Clear my local pick when MY own question advances.
   if (state.myIndex !== lastIndex) { myChoice = null; lastIndex = state.myIndex; }
-  if (state.phase === "lobby") { renderLobby(); showScreen("lobby"); }
-  else if (state.done) { renderOver(); showScreen("over"); }
-  else { renderGame(); showScreen("game"); }
+
+  if (state.phase === "lobby") {
+    showScreen("lobby");
+    renderLobby();
+    lastSig = "";
+    return;
+  }
+  if (state.done) {
+    showScreen("over");
+    renderOver();           // over screen has no question to flicker; leaderboard updates live
+    lastSig = "";
+    return;
+  }
+
+  // Playing. Only rebuild MY question/answers when my own view changed — so
+  // another player answering or advancing repaints ONLY the scoreboard here,
+  // never my question.
+  showScreen("game");
+  const sig = `${state.myIndex}|${state.answered}|${myChoice}|${state.question ? state.question.q : ""}`;
+  if (sig !== lastSig) { lastSig = sig; renderQuestionArea(); }
+  $("gamePlayers").innerHTML = scoreboardHTML();   // live score + status only
 }
 
 function playerRow(p, opts = {}) {
@@ -391,7 +413,7 @@ function renderLobby() {
   }
 }
 
-function renderGame() {
+function renderQuestionArea() {
   const reveal = state.answered;            // personal reveal once I've answered MY question
   $("qcount").textContent = `Q ${state.myIndex + 1} / ${state.total}`;
   const doneCount = state.players.filter(p => p.done).length;
@@ -447,9 +469,6 @@ function renderGame() {
     $("gameNote").textContent = "Pick your answer!";
     $("gameNote").style.color = "var(--neon-cyan)";
   }
-
-  // live shared scoreboard — everyone, each progressing at their own pace
-  $("gamePlayers").innerHTML = scoreboardHTML();
 
   // Personal Next — advances ONLY me, and only after I've answered.
   const ctrl = $("gameHostControls");
