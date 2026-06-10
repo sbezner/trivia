@@ -147,7 +147,12 @@
   .lb-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
     border-radius: 8px; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan); }
   .lb-row.winner { border-color: var(--neon-yellow); box-shadow: 0 0 14px var(--neon-yellow); }
+  .lb-row.me { border-color: var(--neon-pink); }
   .lb-row .lb-pts { color: var(--neon-yellow); font-weight: bold; }
+
+  /* per-player progress / status */
+  .prog { color: var(--neon-cyan); font-size: 0.75rem; margin-left: 6px; letter-spacing: 1px; }
+  .prog.done { color: #39ff14; }
 
   .conn { position: fixed; top: 10px; right: 14px; z-index: 5; font-size: 0.7rem; letter-spacing: 1px;
     text-transform: uppercase; color: #6f6396; }
@@ -324,13 +329,12 @@ window.copyInvite = async () => {
 window.changeQPP = (d) => { qpp = Math.min(10, Math.max(3, qpp + d)); $("qppVal").textContent = qpp; };
 window.startGame = () => socket?.send(JSON.stringify({ type: "start", qpp }));
 window.sendAnswer = (choice) => {
-  if (myChoice !== null) return;
+  if (myChoice !== null || (state && state.answered)) return;
   myChoice = choice;
   socket?.send(JSON.stringify({ type: "answer", choice }));
-  render();
+  render(); // optimistic "locked in" highlight until the server echoes the reveal
 };
-window.hostReveal = () => socket?.send(JSON.stringify({ type: "reveal" }));
-window.hostNext = () => socket?.send(JSON.stringify({ type: "next" }));
+window.myNext = () => socket?.send(JSON.stringify({ type: "next" }));   // advances ONLY me
 window.hostRestart = () => socket?.send(JSON.stringify({ type: "restart" }));
 
 // ---- rendering ----
@@ -340,10 +344,11 @@ function showScreen(id) {
 
 function render() {
   if (!state) return;
-  if (state.index !== lastIndex) { myChoice = null; lastIndex = state.index; }
+  // Clear my local pick when MY own question advances.
+  if (state.myIndex !== lastIndex) { myChoice = null; lastIndex = state.myIndex; }
   if (state.phase === "lobby") { renderLobby(); showScreen("lobby"); }
-  else if (state.phase === "question" || state.phase === "reveal") { renderGame(); showScreen("game"); }
-  else if (state.phase === "gameover") { renderOver(); showScreen("over"); }
+  else if (state.done) { renderOver(); showScreen("over"); }
+  else { renderGame(); showScreen("game"); }
 }
 
 function playerRow(p, opts = {}) {
@@ -381,15 +386,14 @@ function renderLobby() {
 }
 
 function renderGame() {
-  const reveal = state.phase === "reveal";
-  $("qcount").textContent = `Q ${state.index + 1} / ${state.total}`;
-  const answered = state.players.filter(p => p.answered).length;
-  $("answeredCount").textContent = reveal ? "" : `${answered}/${state.players.length} answered`;
+  const reveal = state.answered;            // personal reveal once I've answered MY question
+  $("qcount").textContent = `Q ${state.myIndex + 1} / ${state.total}`;
+  const doneCount = state.players.filter(p => p.done).length;
+  $("answeredCount").textContent = doneCount ? `${doneCount}/${state.players.length} finished` : "";
   $("catTag").textContent = state.question.cat;
   $("questionText").textContent = state.question.q;
 
-  const me = state.players.find(p => p.id === myId);
-  const myReveal = me && me.choice !== null && me.choice !== undefined ? me.choice : myChoice;
+  const myReveal = (state.myChoice !== null && state.myChoice !== undefined) ? state.myChoice : myChoice;
 
   const answersEl = $("answers");
   answersEl.innerHTML = "";
@@ -428,75 +432,70 @@ function renderGame() {
 
   // note
   if (reveal) {
-    $("gameNote").textContent = me && me.correct ? "✔ RAD! +100" : "✗ Bogus!";
-    $("gameNote").style.color = me && me.correct ? "#39ff14" : "var(--neon-pink)";
+    $("gameNote").textContent = state.iCorrect ? "✔ RAD! +100" : "✗ Bogus!";
+    $("gameNote").style.color = state.iCorrect ? "#39ff14" : "var(--neon-pink)";
   } else if (myChoice !== null) {
-    $("gameNote").textContent = "✓ Locked in — waiting for the others…";
+    $("gameNote").textContent = "✓ Locked in…";
     $("gameNote").style.color = "var(--neon-cyan)";
   } else {
     $("gameNote").textContent = "Pick your answer!";
     $("gameNote").style.color = "var(--neon-cyan)";
   }
 
-  // live scoreboard
-  if (reveal) {
-    // Old ranks (by score before this question) vs new ranks → arrows.
-    const byPrev = state.players.slice().sort((a, b) => (b.prevScore || 0) - (a.prevScore || 0));
-    const oldRank = new Map(byPrev.map((p, i) => [p.id, i]));
-    const sorted = state.players.slice().sort((a, b) => b.score - a.score);
-    $("gamePlayers").innerHTML = sorted.map((p, nr) => {
-      const moved = (oldRank.get(p.id) ?? nr) - nr;        // + = climbed
-      const arrow = moved > 0 ? '<span class="arr up">▲</span>'
-                  : moved < 0 ? '<span class="arr down">▼</span>'
-                  : '<span class="arr same">–</span>';
-      const delta = p.score - (p.prevScore || 0);
-      const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-      return `<div class="player-row reveal-row ${p.id === myId ? "me" : ""}" style="animation-delay:${nr * 60}ms">
-                <span><span class="rank-num">${nr + 1}.</span>${arrow}${escapeHtml(p.name)}${you}</span>
-                <span><span class="pts">${p.score}</span>${delta > 0 ? `<span class="delta">+${delta}</span>` : ""}</span>
-              </div>`;
-    }).join("");
-  } else {
-    const sorted = state.players.slice().sort((a, b) => b.score - a.score);
-    $("gamePlayers").innerHTML = sorted.map(p => playerRow(p, { showAnswered: true })).join("");
-  }
+  // live shared scoreboard — everyone, each progressing at their own pace
+  $("gamePlayers").innerHTML = scoreboardHTML();
 
-  // host controls
-  const hc = $("gameHostControls");
-  if (isHost()) {
-    if (reveal) {
-      const last = state.index + 1 >= state.total;
-      hc.innerHTML = `<button class="btn-primary" onclick="hostNext()">${last ? "See Results ▶" : "Next ▶"}</button>`;
-    } else {
-      // Rounds auto-reveal once everyone answers; this is just an escape hatch
-      // for stragglers, labeled with a live count so its purpose is obvious.
-      const answered = state.players.filter(p => p.answered).length;
-      const tot = state.players.length;
-      const allIn = answered === tot;
-      hc.innerHTML = `<button class="btn-ghost" onclick="hostReveal()">` +
-        (allIn ? "Revealing…" : `Reveal now · ${answered}/${tot} answered`) + `</button>`;
-    }
+  // Personal Next — advances ONLY me, and only after I've answered.
+  const ctrl = $("gameHostControls");
+  if (reveal) {
+    const last = state.myIndex + 1 >= state.total;
+    ctrl.innerHTML = `<button class="btn-primary" onclick="myNext()">${last ? "Finish ▶" : "Next ▶"}</button>`;
   } else {
-    hc.innerHTML = reveal ? `<div class="note">Waiting for host…</div>` : "";
+    ctrl.innerHTML = "";
   }
 }
 
+// Shared live scoreboard: rank, name, score, and each player's progress/status.
+function scoreboardHTML() {
+  const sorted = state.players.slice().sort((a, b) => (b.score - a.score) || (b.progress - a.progress));
+  return sorted.map((p, i) => {
+    const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
+    const host = p.id === state.hostId ? '<span class="badge">HOST</span>' : "";
+    const status = p.done ? '<span class="prog done">✓ done</span>' : `<span class="prog">${p.progress}/${state.total}</span>`;
+    return `<div class="player-row ${p.id === myId ? "me" : ""}">
+              <span><span class="rank-num">${i + 1}.</span>${escapeHtml(p.name)}${you}${host}</span>
+              <span><span class="pts">${p.score}</span> ${status}</span>
+            </div>`;
+  }).join("");
+}
+
 function renderOver() {
+  const allDone = state.players.length > 0 && state.players.every(p => p.done);
   const sorted = state.players.slice().sort((a, b) => b.score - a.score);
   const top = sorted.length ? sorted[0].score : 0;
-  const winners = sorted.filter(p => p.score === top);
-  $("overTitle").textContent = winners.length > 1 ? "It's a Tie!" : (sorted[0] ? `${escapeHtml(sorted[0].name)} Wins!` : "Game Over");
+  const me = sorted.find(p => p.id === myId);
+
+  $("overTitle").textContent = allDone
+    ? (sorted.filter(p => p.score === top).length > 1 ? "Final Results — Tie!" : `${escapeHtml(sorted[0].name)} Wins!`)
+    : "You're Done!";
+
+  // While others are still playing, this board keeps updating live.
   $("leaderboard").innerHTML = sorted.map((p, rank) => {
-    const badge = p.score === top ? "👑 " : `${rank + 1}. `;
+    const lead = (p.score === top && allDone) ? "👑 " : `${rank + 1}. `;
     const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-    return `<div class="lb-row ${p.score === top ? "winner" : ""}">
-              <span>${badge}${escapeHtml(p.name)}${you}</span>
+    const status = p.done ? "" : ` <span class="prog">${p.progress}/${state.total}</span>`;
+    return `<div class="lb-row ${(p.score === top && allDone) ? "winner" : ""} ${p.id === myId ? "me" : ""}">
+              <span>${lead}${escapeHtml(p.name)}${you}${status}</span>
               <span class="lb-pts">${p.score} pts</span>
             </div>`;
   }).join("");
+
+  // Host can restart for everyone at any time.
   $("overHostControls").innerHTML = isHost()
-    ? `<button class="btn-primary" onclick="hostRestart()">Play Again ↻</button>` : "";
-  $("overNote").textContent = isHost() ? "" : "Waiting for host to start a new game…";
+    ? `<button class="btn-primary" onclick="hostRestart()">New Game ↻</button>` : "";
+  $("overNote").textContent = allDone
+    ? (isHost() ? "" : "Waiting for the host to start a new game…")
+    : `You scored ${me ? me.score : 0}. Others are still playing — the board updates live!`;
 }
 
 // Prefill room code from ?room= invite links

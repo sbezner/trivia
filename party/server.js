@@ -11,173 +11,154 @@ function shuffle(arr) {
 }
 
 const POINTS = 100;
-const MIN_PLAYERS_TO_START = 1;
 
 /**
  * One Server instance == one game room (a Cloudflare Durable Object).
- * All state is held in memory while at least one player is connected.
+ *
+ * SELF-PACED model: everyone answers the SAME shared deck, but each player
+ * advances through it at their own pace. Answering a question reveals it just
+ * for that player; pressing Next only advances that player. No host or other
+ * player can move anyone else along. Scores are shared and update live.
  */
 export default class Server {
   constructor(room) {
     this.room = room;
-    this.players = new Map();   // connectionId -> { id, name, score, answered, choice, correct }
+    this.players = new Map();   // id -> player
     this.hostId = null;
-    this.phase = "lobby";       // lobby | question | reveal | gameover
-    this.deck = [];             // [{ cat, q, a:[...], correct }]
-    this.index = 0;
+    this.phase = "lobby";       // lobby | playing
+    this.deck = [];             // shared questions for the round
+    this.tallies = [];          // per question index: [n,n,n,n] of picks across all players
+  }
+
+  newPlayer(id) {
+    return { id, name: "", score: 0, pindex: 0, answered: false, choice: null, correct: false, done: false };
   }
 
   onConnect(conn) {
-    // First player to connect becomes the host.
-    if (!this.hostId) this.hostId = conn.id;
-    this.players.set(conn.id, {
-      id: conn.id, name: "", score: 0, scoreBefore: 0, answered: false, choice: null, correct: false,
-    });
-    // Tell this connection who it is, then send everyone the current state.
+    if (!this.hostId) this.hostId = conn.id;          // first in is the host
+    this.players.set(conn.id, this.newPlayer(conn.id));
     conn.send(JSON.stringify({ type: "welcome", id: conn.id }));
-    this.broadcastState();
+    this.sync();
   }
 
   onClose(conn) {
     this.players.delete(conn.id);
-    // If the host left, hand the crown to whoever's next.
     if (conn.id === this.hostId) {
       this.hostId = this.players.size ? [...this.players.keys()][0] : null;
     }
-    // A disconnect might mean everyone remaining has now answered.
-    this.maybeAutoReveal();
-    this.broadcastState();
+    this.sync();
   }
 
   onMessage(raw, sender) {
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
-    const player = this.players.get(sender.id);
-    if (!player) return;
+    const p = this.players.get(sender.id);
+    if (!p) return;
 
     switch (msg.type) {
       case "join":
-        player.name = String(msg.name || "").trim().slice(0, 16) || "Player";
+        p.name = String(msg.name || "").trim().slice(0, 16) || "Player";
         break;
-
       case "start":
-        if (sender.id !== this.hostId) break;
-        if (this.players.size < MIN_PLAYERS_TO_START) break;
-        this.startGame(msg.qpp);
+        if (sender.id === this.hostId) this.startGame(msg.qpp);
         break;
-
       case "answer":
-        if (this.phase !== "question" || player.answered) break;
-        if (typeof msg.choice !== "number" || msg.choice < 0 || msg.choice > 3) break;
-        player.answered = true;
-        player.choice = msg.choice;
-        player.correct = msg.choice === this.deck[this.index].correct;
-        if (player.correct) player.score += POINTS;
-        this.maybeAutoReveal();
+        this.handleAnswer(p, msg.choice);
         break;
-
-      case "reveal":            // host can force the reveal before everyone answers
-        if (sender.id === this.hostId && this.phase === "question") this.reveal();
+      case "next":
+        this.advance(p);
         break;
-
-      case "next":              // host advances to the next question / results
-        if (sender.id === this.hostId && this.phase === "reveal") this.next();
-        break;
-
-      case "restart":           // host sends everyone back to the lobby
+      case "restart":
         if (sender.id === this.hostId) this.resetToLobby();
         break;
     }
-    this.broadcastState();
+    this.sync();
   }
 
   // ---- game flow ----
   startGame(qpp) {
-    const perPlayer = Math.min(10, Math.max(3, Number(qpp) || 5));
-    const total = Math.min(this.players.size * perPlayer, QUESTIONS.length);
-    this.deck = shuffle(QUESTIONS).slice(0, Math.max(total, perPlayer));
-    this.index = 0;
-    for (const p of this.players.values()) { p.score = 0; }
-    this.beginQuestion();
-  }
-
-  beginQuestion() {
-    this.phase = "question";
-    // Snapshot each score so the reveal can show rank changes for this question.
+    const n = Math.min(Math.max(Number(qpp) || 5, 3), 10, QUESTIONS.length);
+    this.deck = shuffle(QUESTIONS).slice(0, n);
+    this.tallies = this.deck.map(() => [0, 0, 0, 0]);
+    this.phase = "playing";
     for (const p of this.players.values()) {
-      p.answered = false; p.choice = null; p.correct = false; p.scoreBefore = p.score;
+      p.score = 0; p.pindex = 0; p.answered = false; p.choice = null; p.correct = false; p.done = false;
     }
   }
 
-  maybeAutoReveal() {
-    if (this.phase !== "question") return;
-    const active = [...this.players.values()];
-    if (active.length > 0 && active.every(p => p.answered)) this.reveal();
+  handleAnswer(p, choice) {
+    if (this.phase !== "playing" || p.done || p.answered) return;
+    if (typeof choice !== "number" || choice < 0 || choice > 3) return;
+    const q = this.deck[p.pindex];
+    if (!q) return;
+    p.answered = true;
+    p.choice = choice;
+    p.correct = choice === q.correct;
+    if (p.correct) p.score += POINTS;
+    this.tallies[p.pindex][choice]++;
   }
 
-  reveal() { this.phase = "reveal"; }
-
-  next() {
-    if (this.index + 1 < this.deck.length) {
-      this.index++;
-      this.beginQuestion();
-    } else {
-      this.phase = "gameover";
+  advance(p) {
+    // A player can only advance their OWN question, and only after answering it.
+    if (this.phase !== "playing" || p.done || !p.answered) return;
+    p.pindex++;
+    if (p.pindex >= this.deck.length) {
+      p.done = true;
     }
+    p.answered = false; p.choice = null; p.correct = false;
   }
 
   resetToLobby() {
     this.phase = "lobby";
     this.deck = [];
-    this.index = 0;
+    this.tallies = [];
     for (const p of this.players.values()) {
-      p.score = 0; p.answered = false; p.choice = null; p.correct = false;
+      p.score = 0; p.pindex = 0; p.answered = false; p.choice = null; p.correct = false; p.done = false;
     }
   }
 
-  // ---- state broadcast (answer key hidden until reveal) ----
-  publicState() {
-    const q = this.deck[this.index];
-    const showQuestion = (this.phase === "question" || this.phase === "reveal") && q;
-    const isReveal = this.phase === "reveal";
+  // ---- per-connection state (each player sees their OWN question) ----
+  scoreboard() {
+    return [...this.players.values()].map(p => ({
+      id: p.id,
+      name: p.name || "…",
+      score: p.score,
+      // How many questions this player has answered so far.
+      progress: p.done ? this.deck.length : Math.min(p.pindex + (p.answered ? 1 : 0), this.deck.length),
+      done: p.done,
+    }));
+  }
 
-    // At reveal, count how many players picked each option (for the bars).
-    let tally = null, answeredCount = 0;
-    if (isReveal && q) {
-      tally = [0, 0, 0, 0];
-      for (const p of this.players.values()) {
-        if (typeof p.choice === "number" && p.choice >= 0 && p.choice < 4) {
-          tally[p.choice]++; answeredCount++;
-        }
-      }
-    }
-
+  stateFor(id) {
+    const p = this.players.get(id);
+    const playing = this.phase === "playing";
+    const q = playing && p && !p.done ? this.deck[p.pindex] : null;
+    const answered = !!(p && p.answered);
+    const showTally = playing && answered && !!q;
+    const tally = showTally ? this.tallies[p.pindex] : null;
     return {
       type: "state",
       phase: this.phase,
       hostId: this.hostId,
-      index: this.index,
       total: this.deck.length,
-      // During "question" we send the text + options but NOT the correct index.
-      question: showQuestion ? { cat: q.cat, q: q.q, a: q.a } : null,
-      correct: isReveal ? q.correct : null,
-      tally,            // [n,n,n,n] of picks per option, reveal only
-      answeredCount,    // how many players answered, reveal only
-      players: [...this.players.values()].map(p => ({
-        id: p.id,
-        name: p.name || "…",
-        score: p.score,
-        // Score before this question's points — lets the client show rank arrows.
-        prevScore: isReveal ? p.scoreBefore : null,
-        answered: p.answered,
-        // Reveal each player's own pick only after the reveal.
-        choice: isReveal ? p.choice : null,
-        correct: isReveal ? p.correct : null,
-      })),
+      myIndex: p ? p.pindex : 0,
+      done: !!(p && p.done),
+      answered,
+      // The answer key is only included once this player has answered.
+      question: q ? { cat: q.cat, q: q.q, a: q.a } : null,
+      myChoice: answered ? p.choice : null,
+      correct: answered && q ? q.correct : null,
+      iCorrect: answered ? p.correct : null,
+      tally,
+      answeredCount: tally ? tally.reduce((a, b) => a + b, 0) : 0,
+      players: this.scoreboard(),
     };
   }
 
-  broadcastState() {
-    this.room.broadcast(JSON.stringify(this.publicState()));
+  sync() {
+    // Each connection gets a state tailored to its own player.
+    for (const conn of this.room.getConnections()) {
+      conn.send(JSON.stringify(this.stateFor(conn.id)));
+    }
   }
 }
