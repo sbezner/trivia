@@ -31,7 +31,7 @@ export default class Server {
     // First player to connect becomes the host.
     if (!this.hostId) this.hostId = conn.id;
     this.players.set(conn.id, {
-      id: conn.id, name: "", score: 0, answered: false, choice: null, correct: false,
+      id: conn.id, name: "", score: 0, scoreBefore: 0, answered: false, choice: null, correct: false,
     });
     // Tell this connection who it is, then send everyone the current state.
     conn.send(JSON.stringify({ type: "welcome", id: conn.id }));
@@ -103,7 +103,10 @@ export default class Server {
 
   beginQuestion() {
     this.phase = "question";
-    for (const p of this.players.values()) { p.answered = false; p.choice = null; p.correct = false; }
+    // Snapshot each score so the reveal can show rank changes for this question.
+    for (const p of this.players.values()) {
+      p.answered = false; p.choice = null; p.correct = false; p.scoreBefore = p.score;
+    }
   }
 
   maybeAutoReveal() {
@@ -136,6 +139,19 @@ export default class Server {
   publicState() {
     const q = this.deck[this.index];
     const showQuestion = (this.phase === "question" || this.phase === "reveal") && q;
+    const isReveal = this.phase === "reveal";
+
+    // At reveal, count how many players picked each option (for the bars).
+    let tally = null, answeredCount = 0;
+    if (isReveal && q) {
+      tally = [0, 0, 0, 0];
+      for (const p of this.players.values()) {
+        if (typeof p.choice === "number" && p.choice >= 0 && p.choice < 4) {
+          tally[p.choice]++; answeredCount++;
+        }
+      }
+    }
+
     return {
       type: "state",
       phase: this.phase,
@@ -144,15 +160,19 @@ export default class Server {
       total: this.deck.length,
       // During "question" we send the text + options but NOT the correct index.
       question: showQuestion ? { cat: q.cat, q: q.q, a: q.a } : null,
-      correct: this.phase === "reveal" ? q.correct : null,
+      correct: isReveal ? q.correct : null,
+      tally,            // [n,n,n,n] of picks per option, reveal only
+      answeredCount,    // how many players answered, reveal only
       players: [...this.players.values()].map(p => ({
         id: p.id,
         name: p.name || "…",
         score: p.score,
+        // Score before this question's points — lets the client show rank arrows.
+        prevScore: isReveal ? p.scoreBefore : null,
         answered: p.answered,
         // Reveal each player's own pick only after the reveal.
-        choice: this.phase === "reveal" ? p.choice : null,
-        correct: this.phase === "reveal" ? p.correct : null,
+        choice: isReveal ? p.choice : null,
+        correct: isReveal ? p.correct : null,
       })),
     };
   }

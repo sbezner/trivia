@@ -101,6 +101,22 @@
   .answer.wrong { background: rgba(255, 46, 136, 0.2); border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
   .answer.picked { outline: 2px dashed var(--neon-yellow); outline-offset: 2px; }
   .answer.dim { opacity: 0.4; }
+  /* distribution bar fills the option from the left at reveal */
+  .answer { position: relative; overflow: hidden; }
+  .answer .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+    background: rgba(255, 46, 136, 0.22); z-index: 0; transition: width 0.6s cubic-bezier(.2,.8,.2,1); }
+  .answer .fill.fill-correct { background: rgba(57, 255, 20, 0.28); }
+  .answer .letter, .answer .qa, .answer .pct { position: relative; z-index: 1; }
+  .answer .qa { flex: 1; }
+  .answer .pct { font-weight: bold; font-size: 0.82rem; letter-spacing: 1px; color: #fff; white-space: nowrap; }
+
+  /* animated reveal leaderboard */
+  .rank-num { color: var(--neon-cyan); min-width: 24px; display: inline-block; }
+  .arr { font-size: 0.8rem; margin: 0 6px; }
+  .arr.up { color: #39ff14; } .arr.down { color: var(--neon-pink); } .arr.same { color: #6f6396; }
+  .delta { color: #39ff14; font-size: 0.75rem; margin-left: 8px; }
+  .player-row.reveal-row { animation: lbIn 0.45s ease both; }
+  @keyframes lbIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: translateX(0); } }
 
   .note { text-align: center; margin-top: 18px; min-height: 22px; font-size: 0.95rem; letter-spacing: 1px; color: var(--neon-cyan); }
 
@@ -265,12 +281,44 @@ window.joinGame = () => {
   showScreen("lobby");
 };
 
-window.copyInvite = () => {
+function legacyCopy(text) {
+  // Fallback for non-secure contexts (e.g. phones on the http LAN IP) where
+  // navigator.clipboard is unavailable.
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch { return false; }
+}
+
+window.copyInvite = async () => {
+  if (!roomCode) return;
   const url = `${location.origin}${location.pathname}?room=${roomCode}`;
-  navigator.clipboard?.writeText(url).then(
-    () => { $("copyBtn").textContent = "Copied! ✓"; setTimeout(() => $("copyBtn").textContent = "Copy Invite Link", 1500); },
-    () => prompt("Copy this invite link:", url)
-  );
+  let ok = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(url);
+      ok = true;
+    }
+  } catch { /* fall through to legacy path */ }
+  if (!ok) ok = legacyCopy(url);
+
+  const btn = $("copyBtn");
+  if (ok) {
+    btn.textContent = "Copied! ✓";
+    setTimeout(() => { btn.textContent = "Copy Invite Link"; }, 1500);
+  } else {
+    // Last resort: show the link so the user can copy it by hand.
+    prompt("Copy this invite link:", url);
+  }
 };
 
 window.changeQPP = (d) => { qpp = Math.min(10, Math.max(3, qpp + d)); $("qppVal").textContent = qpp; };
@@ -302,9 +350,14 @@ function playerRow(p, opts = {}) {
   const me = p.id === myId ? '<span class="badge">YOU</span>' : "";
   const host = p.id === state.hostId ? '<span class="badge">HOST</span>' : "";
   let right;
-  if (opts.showScore) right = `<span class="pts">${p.score}</span>`;
-  else if (opts.showAnswered) right = `<span class="status-dot">${p.answered ? "✓" : "…"}</span>`;
-  else right = "";
+  if (opts.showAnswered) {
+    // Show the running score AND whether this player has locked in an answer.
+    right = `<span class="pts">${p.score}</span> <span class="status-dot">${p.answered ? "✓" : "…"}</span>`;
+  } else if (opts.showScore) {
+    right = `<span class="pts">${p.score}</span>`;
+  } else {
+    right = "";
+  }
   return `<div class="player-row ${p.id === myId ? "me" : ""}">
             <span>${escapeHtml(p.name)}${me}${host}</span><span>${right}</span>
           </div>`;
@@ -340,24 +393,38 @@ function renderGame() {
 
   const answersEl = $("answers");
   answersEl.innerHTML = "";
+  const totalAnswered = state.answeredCount || 0;
+  const pcts = [];
   state.question.a.forEach((text, i) => {
     const btn = document.createElement("button");
     btn.className = "answer";
-    btn.innerHTML = `<span class="letter">${LETTERS[i]}</span><span>${escapeHtml(text)}</span>`;
+    const label = `<span class="letter">${LETTERS[i]}</span><span class="qa">${escapeHtml(text)}</span>`;
     if (reveal) {
+      const n = state.tally ? state.tally[i] : 0;
+      const pct = totalAnswered ? Math.round((n / totalAnswered) * 100) : 0;
+      pcts.push(pct);
       btn.disabled = true;
       if (i === state.correct) btn.classList.add("correct");
       else if (i === myReveal) btn.classList.add("wrong");
       else btn.classList.add("dim");
+      // Bar starts at width:0, then animates to pct via requestAnimationFrame below.
+      btn.innerHTML = `<div class="fill ${i === state.correct ? "fill-correct" : ""}" style="width:0"></div>` +
+                      label + `<span class="pct">${pct}% · ${n}</span>`;
     } else if (myChoice !== null) {
       btn.disabled = true;
-      if (i === myChoice) btn.classList.add("picked");
-      else btn.classList.add("dim");
+      btn.classList.add(i === myChoice ? "picked" : "dim");
+      btn.innerHTML = label;
     } else {
+      btn.innerHTML = label;
       btn.onclick = () => window.sendAnswer(i);
     }
     answersEl.appendChild(btn);
   });
+  if (reveal) {
+    requestAnimationFrame(() => {
+      answersEl.querySelectorAll(".fill").forEach((f, i) => { f.style.width = pcts[i] + "%"; });
+    });
+  }
 
   // note
   if (reveal) {
@@ -372,9 +439,27 @@ function renderGame() {
   }
 
   // live scoreboard
-  const sorted = state.players.slice().sort((a, b) => b.score - a.score);
-  $("gamePlayers").innerHTML = sorted.map(p =>
-    playerRow(p, reveal ? { showScore: true } : { showAnswered: true })).join("");
+  if (reveal) {
+    // Old ranks (by score before this question) vs new ranks → arrows.
+    const byPrev = state.players.slice().sort((a, b) => (b.prevScore || 0) - (a.prevScore || 0));
+    const oldRank = new Map(byPrev.map((p, i) => [p.id, i]));
+    const sorted = state.players.slice().sort((a, b) => b.score - a.score);
+    $("gamePlayers").innerHTML = sorted.map((p, nr) => {
+      const moved = (oldRank.get(p.id) ?? nr) - nr;        // + = climbed
+      const arrow = moved > 0 ? '<span class="arr up">▲</span>'
+                  : moved < 0 ? '<span class="arr down">▼</span>'
+                  : '<span class="arr same">–</span>';
+      const delta = p.score - (p.prevScore || 0);
+      const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
+      return `<div class="player-row reveal-row ${p.id === myId ? "me" : ""}" style="animation-delay:${nr * 60}ms">
+                <span><span class="rank-num">${nr + 1}.</span>${arrow}${escapeHtml(p.name)}${you}</span>
+                <span><span class="pts">${p.score}</span>${delta > 0 ? `<span class="delta">+${delta}</span>` : ""}</span>
+              </div>`;
+    }).join("");
+  } else {
+    const sorted = state.players.slice().sort((a, b) => b.score - a.score);
+    $("gamePlayers").innerHTML = sorted.map(p => playerRow(p, { showAnswered: true })).join("");
+  }
 
   // host controls
   const hc = $("gameHostControls");
@@ -383,7 +468,13 @@ function renderGame() {
       const last = state.index + 1 >= state.total;
       hc.innerHTML = `<button class="btn-primary" onclick="hostNext()">${last ? "See Results ▶" : "Next ▶"}</button>`;
     } else {
-      hc.innerHTML = `<button class="btn-ghost" onclick="hostReveal()">Reveal Answers</button>`;
+      // Rounds auto-reveal once everyone answers; this is just an escape hatch
+      // for stragglers, labeled with a live count so its purpose is obvious.
+      const answered = state.players.filter(p => p.answered).length;
+      const tot = state.players.length;
+      const allIn = answered === tot;
+      hc.innerHTML = `<button class="btn-ghost" onclick="hostReveal()">` +
+        (allIn ? "Revealing…" : `Reveal now · ${answered}/${tot} answered`) + `</button>`;
     }
   } else {
     hc.innerHTML = reveal ? `<div class="note">Waiting for host…</div>` : "";
