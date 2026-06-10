@@ -6,6 +6,7 @@
   "description": "Online Kahoot-style 80's trivia, powered by PartyKit on Cloudflare",
   "scripts": {
     "dev": "partykit dev",
+    "predeploy": "node scripts/bump-build.mjs",
     "deploy": "partykit deploy"
   },
   "devDependencies": {
