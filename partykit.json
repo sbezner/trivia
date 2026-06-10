@@ -2,6 +2,10 @@
   "$schema": "https://www.partykit.io/schema.json",
   "name": "rad-trivia",
   "main": "party/server.js",
-  "serve": "public",
+  "serve": {
+    "path": "public",
+    "browserTTL": 0,
+    "edgeTTL": 0
+  },
   "compatibilityDate": "2024-09-01"
 }

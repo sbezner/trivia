@@ -28,6 +28,7 @@ export default class Server {
     this.phase = "lobby";       // lobby | playing
     this.deck = [];             // shared questions for the round
     this.tallies = [];          // per question index: [n,n,n,n] of picks across all players
+    this.qN = 5;                // remembered question count, so New Game re-deals the same size
   }
 
   newPlayer(id) {
@@ -69,7 +70,9 @@ export default class Server {
         this.advance(p);
         break;
       case "restart":
-        if (sender.id === this.hostId) this.resetToLobby();
+        // Host's "New Game" — immediately re-deal a fresh round for everyone,
+        // same room/code, no lobby trip.
+        if (sender.id === this.hostId) this.startGame(this.qN);
         break;
     }
     this.sync();
@@ -77,7 +80,8 @@ export default class Server {
 
   // ---- game flow ----
   startGame(qpp) {
-    const n = Math.min(Math.max(Number(qpp) || 5, 3), 10, QUESTIONS.length);
+    const n = Math.min(Math.max(Number(qpp) || this.qN, 3), 10, QUESTIONS.length);
+    this.qN = n;
     this.deck = shuffle(QUESTIONS).slice(0, n);
     this.tallies = this.deck.map(() => [0, 0, 0, 0]);
     this.phase = "playing";
