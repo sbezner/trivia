@@ -1,8 +1,8 @@
 # CLAUDE.md — project context for AI sessions
 
-Totally Rad 80's Trivia — a neon 80s-themed multiplayer trivia game for a group of
-people in one living room, each on their own phone, talking trash and fighting for
-bragging rights. Owner: Steve Bezner (sbezner@gmail.com).
+Totally Rad 80's Trivia — a multiplayer trivia game (80s questions, modern sleek UI)
+for a group of people in one living room, each on their own phone, talking trash and
+fighting for bragging rights. Owner: Steve Bezner (sbezner@gmail.com).
 
 ## Current state (June 2026)
 
@@ -31,8 +31,16 @@ No test framework. Verification = throwaway WebSocket scripts against `npm run d
 3. **Senior-and-kid proof.** Big type, ≥48px touch targets, zero typing required
    (auto-dealt emoji personas), one obvious action per moment, never-shaming feedback
    (no wrong-answer broadcasts — kids in the room).
-4. **80s neon aesthetic is beloved** — Courier New, neon pink/cyan/purple/yellow on
-   dark, glow effects. Refine, don't replace.
+4. **Modern, sleek visual language** (the old neon look was retired June 2026 at the
+   owner's request — do NOT bring back glows/scanlines/Courier/all-caps). Dark theme
+   tuned for a living room at night, design tokens in `:root` of public/index.html:
+   page `#0F1117`, cards `#181C26` with 1px `#2C3242` borders + soft shadows; violet
+   primary `#6C5CE7` (active tab, primary buttons, race fills), amber accent `#FFC857`
+   (scores, room codes, win chips, attention dot), mint `#3DDC97` (correct / done /
+   connected), soft rose `#FF8A9B` (gentle miss, quit, reconnecting). System font
+   stack (`ui-rounded`/`system-ui`, no webfonts), sentence case + small uppercase
+   eyebrow labels only, radius 10/14/20px, every text/surface pair WCAG AA. The fun
+   comes from color, motion, and the emoji personas — keep it playful, never neon.
 5. **2-digit room codes (10–99)**, `?room=NN` invite links. Optimized for "shout the
    number across the room".
 6. Phones first (375px wide must look great); desktop secondary.
@@ -69,13 +77,18 @@ name, n}` for callout toasts.
 
 ## UX flow (as shipped)
 
+0. **Navigation**: fixed TOP bar = GAME | CONTROLS segmented tabs (active tab is a
+   solid violet pill; amber attention dot appears on GAME when the game surface
+   changes while you're on CONTROLS). Connection status lives at the top-right of
+   the same bar: quiet green dot when connected, rose "● reconnecting…" pill when
+   not. Callout toasts anchor at the BOTTOM of the screen (visible from either tab).
 1. **Landing**: auto-dealt 80s persona (dice re-rolls, face picks emoji, name is
    tappable to type). Two giant cards: 🚀 START | 🔢 JOIN (arcade keypad; 2nd digit
    auto-joins).
 2. **Lobby**: room number billboard-huge, copy-invite-link, player list, questions
    stepper (3–20, default 10), giant Start anyone can press.
 3. **Question**: big type, 64px answer buttons, answer → huge result banner
-   ("✔ TUBULAR! +100" / gentle miss line) → giant NEXT directly below → race-track
+   ("✔ Tubular! +100" / gentle miss line) → giant NEXT directly below → race-track
    scoreboard (avatar runners → 🏁, crown on leader). Toasts flash on lead changes,
    3/5/10 streaks, finishes, wins.
 4. **Game over**: podium (2nd-1st-3rd, 🥇🥈🥉), confetti, 🏆×N session-win chips,

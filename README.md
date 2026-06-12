@@ -1,6 +1,6 @@
 # 🕹️ Totally Rad 80's Trivia
 
-A neon-soaked 80's trivia game. It comes in **two flavors**:
+An 80's trivia game with a modern, sleek dark UI. It comes in **two flavors**:
 
 1. **Pass-and-play** (`index.html`) — a single self-contained file, no server, no build step. Just open it. 1–6 players share one device.
 2. **Online multiplayer** (`public/` + `party/`) — Kahoot-style live play where everyone joins from their own phone with a room code. Powered by [PartyKit](https://www.partykit.io/) on Cloudflare.
