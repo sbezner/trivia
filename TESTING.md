@@ -29,10 +29,11 @@ npm run dev
 
 This starts the PartyKit server at **http://127.0.0.1:1999**. Then:
 
-1. Open **http://127.0.0.1:1999** in one browser window → click **New Game**. Note the 2-digit room code.
-2. Open the same URL in a **second window** (or your phone on the same Wi-Fi — use the `http://<your-ip>:1999` address PartyKit prints) → enter the code → **Join a Game**.
-3. In either window, hit **Start Game** (there's no host — anyone can start). Both windows get the same shared deck; answer at your own pace and watch the scoreboard update live.
-4. **Refresh either tab** mid-game — it reconnects and resumes on the same question with the same score (identity is stored in `localStorage`).
+1. Open **http://127.0.0.1:1999** in one browser window. You're auto-dealt an 80s persona (tap the dice/face/name to change it). Tap the big 🚀 **START** card. Note the 2-digit room code.
+2. Open the same URL in a **second window** (or your phone on the same Wi-Fi — use the `http://<your-ip>:1999` address PartyKit prints) → tap 🔢 **JOIN** → punch the code on the keypad (the second digit auto-joins).
+3. In either window, hit **Start Game** (there's no host — anyone can start). Each window gets the shared deck at its own pace; watch the race-track scoreboard move and the callout toasts (lead changes, streaks, finishes) flash in both windows.
+4. **Refresh either tab** mid-game — it reconnects and resumes on the same question with the same score and persona (identity is stored in `localStorage`).
+5. Finish a round to see the podium + confetti, then **New Game** — 🏆 win chips persist across rounds; scores reset.
 
 Press `Ctrl+C` in the terminal to stop the server.
 
@@ -108,9 +109,15 @@ process.exit(fail ? 1 : 0);
 node _wstest.mjs && rm _wstest.mjs
 ```
 
-When this rework landed, this suite ran **19/19 green** against a live PartyKit dev server
+When this rework landed, this suite ran green against a live PartyKit dev server
 (no-host start, stable-identity resume after a drop, offline marking, answer-key hidden,
 scoring, and New Game all verified).
+
+To also exercise the social layer, extend the script: collect `{type:"event"}` messages
+(kinds: `lead`, `streak`, `finish`, `win`), play a full round with two clients
+(`answer` + `next` in a loop), and assert that a `win` event fires, `players[].wins`
+increments exactly once per round, and wins survive both a reconnect and a `newgame`.
+The full-flow suite ran **15/15 green** when the race-track/wins/podium pass landed.
 
 ## Deploy
 
