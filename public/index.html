@@ -90,16 +90,13 @@
     font-size: 1.3rem; text-align: center; letter-spacing: 1px; padding: 16px;
     border-color: var(--neon-pink); margin-bottom: 22px;
   }
-  .panel {
-    background: rgba(5, 217, 232, 0.05); border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px; padding: 16px; margin-bottom: 14px;
-  }
   .panel-hint { text-align: center; color: #9a8fc0; font-size: 0.78rem; letter-spacing: 1px; margin-top: 10px; }
-  .join-row { display: flex; gap: 10px; align-items: stretch; }
+  .action-row { display: flex; gap: 10px; align-items: stretch; }
+  .btn-primary.new-btn { flex: 1; margin-top: 0; font-size: 0.85rem; letter-spacing: 1px; padding: 13px 8px; }
+  .btn-ghost.join-btn { flex: 1; margin-top: 0; font-size: 0.85rem; letter-spacing: 1px; padding: 13px 8px; }
   input.code.join-code {
-    flex: 0 0 96px; width: 96px; margin-bottom: 0; letter-spacing: 8px; font-size: 1.6rem; padding-left: 8px;
+    flex: 0 0 78px; width: 78px; margin-bottom: 0; letter-spacing: 6px; font-size: 1.4rem; padding: 8px 0 8px 6px;
   }
-  .btn-ghost.join-btn { flex: 1; margin-top: 0; }
 
   /* room banner (shown during play so people can join any time) */
   .roombar {
@@ -202,20 +199,12 @@
     <label class="setup-label name-label" for="nameInput">Your Name</label>
     <input class="field name-top" id="nameInput" type="text" maxlength="16" placeholder="Tap to type your name">
 
-    <!-- New game -->
-    <div class="panel">
-      <button class="btn-primary" style="margin-top:0;" onclick="newGame()">Start New Game ▶</button>
-      <div class="panel-hint">Deal a fresh game and share the code</div>
+    <div class="action-row">
+      <button class="btn-primary new-btn" onclick="newGame()">Start New Game</button>
+      <button class="btn-ghost join-btn" onclick="joinGame()">Join a Game</button>
+      <input class="field code join-code" id="codeInput" type="tel" inputmode="numeric" maxlength="2" placeholder="00">
     </div>
-
-    <!-- Join game -->
-    <div class="panel">
-      <div class="join-row">
-        <input class="field code join-code" id="codeInput" type="tel" inputmode="numeric" maxlength="2" placeholder="00">
-        <button class="btn-ghost join-btn" onclick="joinGame()">Join Game</button>
-      </div>
-      <div class="panel-hint">Enter a friend's 2-digit code to join their game</div>
-    </div>
+    <div class="panel-hint">Joining? Enter your friend's 2-digit code in the box.</div>
   </div>
 
   <!-- LOBBY (gather + share code; any player can start) -->
@@ -270,7 +259,7 @@
     <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
-  <div class="version" id="version">v7</div>
+  <div class="version" id="version">v8</div>
 </div>
 
 <script type="module">
