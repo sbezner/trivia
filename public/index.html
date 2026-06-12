@@ -25,7 +25,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    /* extra bottom padding so the card never hides behind the fixed tab bar */
+    padding: 20px 20px 110px;
     overflow-x: hidden;
   }
   body::after {
@@ -175,21 +176,59 @@
   .kp-note { text-align: center; min-height: 24px; margin-top: 14px; color: var(--neon-cyan); letter-spacing: 1px; font-size: 0.9rem; }
   .kp-back { display: block; margin: 6px auto 0; }
 
-  .landing-note { text-align: center; min-height: 20px; margin-top: 14px; color: var(--neon-cyan); letter-spacing: 1px; font-size: 0.85rem; }
+  /* ===================== TAB BAR (GAME | CONTROLS — the whole map of the app) ===================== */
+  .tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; display: flex;
+    background: rgba(13, 2, 33, 0.97); border-top: 2px solid var(--neon-purple);
+    box-shadow: 0 -4px 22px rgba(181, 55, 242, 0.4);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .tab {
+    flex: 1; min-height: 64px; background: transparent; color: #8a7db8;
+    font-size: 1.05rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; gap: 9px; position: relative;
+  }
+  .tab .t-ico { font-size: 1.55rem; line-height: 1; }
+  .tab:hover { color: #d8c7ff; }
+  .tab.on { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-pink); }
+  .tab.on::after {
+    content: ""; position: absolute; left: 14%; right: 14%; bottom: 6px; height: 4px;
+    border-radius: 2px; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink);
+  }
+  .tab-dot {
+    position: absolute; top: 10px; right: 18%; width: 13px; height: 13px; border-radius: 50%;
+    background: var(--neon-yellow); box-shadow: 0 0 10px var(--neon-yellow);
+    animation: pulse 1.2s ease-in-out infinite; display: none;
+  }
 
-  /* room banner (shown during play so people can join any time) */
-  .roombar {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    background: rgba(181,55,242,0.15); border: 1px solid var(--neon-purple);
-    border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.8rem; letter-spacing: 1px;
+  /* ===================== NO GAME YET (GAME tab when not in a room) ===================== */
+  .ng-tv { text-align: center; font-size: 3.6rem; margin: 10px 0 12px; }
+  .ng-big { font-size: 1.3rem; color: var(--neon-yellow); letter-spacing: 1px;
+    text-shadow: 0 0 10px var(--neon-pink); }
+
+  /* ===================== CURRENT GAME CARD (CONTROLS tab while in a room) ===================== */
+  .cg-card {
+    background: rgba(5, 217, 232, 0.07); border: 2px solid var(--neon-cyan); border-radius: 14px;
+    padding: 16px; text-align: center; margin-bottom: 14px; box-shadow: 0 0 12px rgba(5, 217, 232, 0.3);
   }
-  .roombar .rb-code { color: var(--neon-yellow); font-size: 1.1rem; font-weight: bold; letter-spacing: 3px; }
-  .roombar .rb-actions { display: flex; gap: 8px; }
-  .roombar button {
-    background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
-    border-radius: 6px; padding: 8px 12px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+  .cg-label { text-transform: uppercase; letter-spacing: 3px; font-size: 0.72rem;
+    color: var(--neon-cyan); margin-bottom: 6px; }
+  .cg-room { font-size: 0.95rem; letter-spacing: 2px; color: #d8c7ff; margin-bottom: 12px; }
+  .cg-code { display: block; color: var(--neon-yellow); font-size: 2.7rem; font-weight: bold;
+    letter-spacing: 10px; padding-left: 10px; line-height: 1.25; text-shadow: 0 0 14px var(--neon-pink); }
+  .btn-quit {
+    display: block; width: 100%; background: transparent; color: var(--neon-pink);
+    border: 2px solid var(--neon-pink); font-size: 1rem; font-weight: bold; text-transform: uppercase;
+    letter-spacing: 2px; padding: 14px; border-radius: 8px; margin-top: 14px; min-height: 52px;
   }
-  .roombar button:hover { background: rgba(5,217,232,0.15); }
+  .btn-quit:hover { background: rgba(255, 46, 136, 0.15); box-shadow: 0 0 12px rgba(255, 46, 136, 0.5); }
+  .quit-confirm {
+    border: 2px solid var(--neon-pink); border-radius: 14px; padding: 16px; margin-top: 14px;
+    background: rgba(255, 46, 136, 0.08); text-align: center; animation: fadeIn 0.2s ease;
+  }
+  .quit-q { font-size: 1.2rem; line-height: 1.5; letter-spacing: 1px; margin-bottom: 12px; }
+  .quit-sub { color: #d8c7ff; font-size: 0.85rem; display: block; margin-top: 4px; }
+  .cg-hint { text-align: center; color: #9a8fc0; font-size: 0.75rem; letter-spacing: 1px; margin-top: 12px; }
 
   .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
     font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
@@ -389,48 +428,22 @@
   <h1>80's Trivia</h1>
   <div class="subtitle">★ Online · Self-Paced ★</div>
 
-  <!-- LANDING -->
-  <div id="landing" class="screen">
-    <!-- who are you: zero typing required -->
-    <div class="id-card">
-      <div class="id-label">★ You Are ★</div>
-      <div class="id-row" id="idRow">
-        <button class="id-avatar" id="avatarBtn" onclick="toggleAvatars()" aria-label="Change your face">👾</button>
-        <button class="id-name" id="nameBtn" onclick="editName()" aria-label="Change your name">Rad Max</button>
-        <button class="id-dice" id="diceBtn" onclick="shuffleIdentity()" aria-label="Random new name">🎲</button>
-      </div>
-      <input class="field name-edit" id="nameInput" type="text" maxlength="13" style="display:none" aria-label="Type your name">
-      <div class="avatar-grid" id="avatarGrid" style="display:none"></div>
-      <div class="id-hint">tap the face · tap the name · or roll the dice</div>
-    </div>
+  <!-- ╔══════════════ 🎮 GAME TAB — the play surface, nothing else ══════════════╗ -->
+  <div id="tabGamePanel">
 
-    <!-- the big choice -->
-    <div class="choice-cards" id="choiceCards">
-      <button class="choice start" onclick="newGame()">
-        <span class="ci">🚀</span>
-        <span class="ct">Start</span>
-        <span class="cs">a new game</span>
-      </button>
-      <button class="choice join" onclick="showKeypad()">
-        <span class="ci">🔢</span>
-        <span class="ct">Join</span>
-        <span class="cs">got a code?</span>
-      </button>
+  <!-- NO GAME YET (or auto-rejoin in flight) — never a blank tab -->
+  <div id="noGame" class="screen" style="display:none;">
+    <div id="noGameIdle">
+      <div class="ng-tv">📺</div>
+      <p class="lead ng-big">No game on yet!</p>
+      <p class="lead">Hop over to CONTROLS to start a<br>new game or join your friends.</p>
+      <button class="btn-primary btn-start" onclick="setTab('controls')">⚙️ Go to Controls</button>
     </div>
-
-    <!-- arcade keypad (revealed by JOIN) -->
-    <div id="keypadPanel" style="display:none">
-      <div class="kp-prompt">What room? Punch it in!</div>
-      <div class="digits" id="digits">
-        <span class="digit" id="digit0"></span>
-        <span class="digit" id="digit1"></span>
-      </div>
-      <div class="keypad" id="keypad"></div>
-      <div class="kp-note" id="kpNote"></div>
-      <button class="btn-link kp-back" onclick="hideKeypad()">← back</button>
+    <div id="noGameJoining" style="display:none;">
+      <div class="ng-tv">🕹</div>
+      <p class="lead ng-big">Joining room <span id="joiningCode">--</span>…</p>
+      <p class="lead">Hang tight, getting you back in!</p>
     </div>
-
-    <div class="landing-note" id="landingNote"></div>
   </div>
 
   <!-- LOBBY (gather + share code; any player can start) -->
@@ -463,17 +476,10 @@
     </div>
     <button class="btn-primary btn-start" id="startBtn" onclick="startGame()">▶ Start Game</button>
     <div class="note" id="lobbyNote"></div>
-    <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
   <!-- GAME (question + reveal) -->
   <div id="game" class="screen" style="display:none;">
-    <div class="roombar">
-      <span>ROOM <span class="rb-code" id="gameCode">--</span></span>
-      <span class="rb-actions">
-        <button onclick="copyInvite(event)" id="gameCopyBtn">Copy Link</button>
-      </span>
-    </div>
     <div class="hud">
       <span class="qcount" id="qcount">Q 1 / 10</span>
       <span class="answered" id="answeredCount"></span>
@@ -489,23 +495,94 @@
 
   <!-- GAME OVER -->
   <div id="over" class="screen" style="display:none;">
-    <div class="roombar">
-      <span>ROOM <span class="rb-code" id="overCode">--</span></span>
-      <span class="rb-actions">
-        <button onclick="copyInvite(event)">Copy Link</button>
-      </span>
-    </div>
     <div class="results-title" id="overTitle">Game Over</div>
     <div id="overPodium"></div>
     <div class="leaderboard" id="overList"></div>
     <div class="race" id="overRace" style="display:none; margin-bottom:20px;"></div>
     <button class="btn-primary btn-start" onclick="newGameAgain()">New Game ↻</button>
     <div class="note" id="overNote"></div>
-    <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
+
+  </div>
+  <!-- ╚══════════════ end GAME tab ══════════════╝ -->
+
+  <!-- ╔══════════════ ⚙️ CONTROLS TAB — who you are + start / join / quit ══════════════╗ -->
+  <div id="tabControlsPanel" style="display:none;">
+  <div class="screen">
+
+    <!-- who are you: zero typing required -->
+    <div class="id-card">
+      <div class="id-label">★ You Are ★</div>
+      <div class="id-row" id="idRow">
+        <button class="id-avatar" id="avatarBtn" onclick="toggleAvatars()" aria-label="Change your face">👾</button>
+        <button class="id-name" id="nameBtn" onclick="editName()" aria-label="Change your name">Rad Max</button>
+        <button class="id-dice" id="diceBtn" onclick="shuffleIdentity()" aria-label="Random new name">🎲</button>
+      </div>
+      <input class="field name-edit" id="nameInput" type="text" maxlength="13" style="display:none" aria-label="Type your name">
+      <div class="avatar-grid" id="avatarGrid" style="display:none"></div>
+      <div class="id-hint">tap the face · tap the name · or roll the dice</div>
+    </div>
+
+    <!-- in a room: your game's home base + the one way out -->
+    <div id="currentGameCard" style="display:none;">
+      <div class="cg-card">
+        <div class="cg-label">★ Your Current Game ★</div>
+        <div class="cg-room">ROOM<span class="cg-code" id="cgCode">--</span></div>
+        <button class="btn-ghost" onclick="copyInvite(event)">Copy Invite Link 🔗</button>
+        <button class="btn-primary" onclick="setTab('game')" style="margin-top:10px;">🎮 Back to the Game</button>
+      </div>
+      <button class="btn-quit" id="quitBtn" onclick="askQuit()">🚪 Quit This Game</button>
+      <div class="quit-confirm" id="quitConfirm" style="display:none;">
+        <div class="quit-q">Quit room <span id="quitCode">--</span>?
+          <span class="quit-sub">Your spot and score in this game go away.</span></div>
+        <button class="btn-primary" onclick="confirmQuit()">🚪 Yes, Quit</button>
+        <button class="btn-ghost" onclick="cancelQuit()">↩ No, Keep Playing</button>
+      </div>
+      <div class="cg-hint">To start or join a different game, quit this one first.</div>
+    </div>
+
+    <!-- not in a room: the big choice -->
+    <div class="choice-cards" id="choiceCards">
+      <button class="choice start" onclick="newGame()">
+        <span class="ci">🚀</span>
+        <span class="ct">Start</span>
+        <span class="cs">a new game</span>
+      </button>
+      <button class="choice join" onclick="showKeypad()">
+        <span class="ci">🔢</span>
+        <span class="ct">Join</span>
+        <span class="cs">got a code?</span>
+      </button>
+    </div>
+
+    <!-- arcade keypad (revealed by JOIN) -->
+    <div id="keypadPanel" style="display:none">
+      <div class="kp-prompt">What room? Punch it in!</div>
+      <div class="digits" id="digits">
+        <span class="digit" id="digit0"></span>
+        <span class="digit" id="digit1"></span>
+      </div>
+      <div class="keypad" id="keypad"></div>
+      <div class="kp-note" id="kpNote"></div>
+      <button class="btn-link kp-back" onclick="hideKeypad()">← back</button>
+    </div>
+
+  </div>
+  </div>
+  <!-- ╚══════════════ end CONTROLS tab ══════════════╝ -->
 
   <div class="version" id="version">v11</div>
 </div>
+
+<!-- the always-there map: two places, one thumb -->
+<nav class="tabbar" aria-label="Game and controls tabs">
+  <button class="tab" id="tabGameBtn" onclick="setTab('game')" aria-pressed="false">
+    <span class="t-ico">🎮</span> Game <span class="tab-dot" id="gameDot"></span>
+  </button>
+  <button class="tab" id="tabControlsBtn" onclick="setTab('controls')" aria-pressed="false">
+    <span class="t-ico">⚙️</span> Controls
+  </button>
+</nav>
 
 <script type="module">
 import PartySocket from "https://esm.sh/partysocket@1.0.2";
@@ -632,6 +709,43 @@ let currentScreen = null;
 let qpp = 10;
 let state = null;
 let roomCode = "";
+let activeTab = "controls"; // "game" | "controls" — first-timers land on CONTROLS
+
+// ---- tabs: GAME is the TV, CONTROLS is the remote. Two places, always visible. ----
+window.setTab = (t) => {
+  activeTab = t;
+  $("tabGamePanel").style.display = t === "game" ? "block" : "none";
+  $("tabControlsPanel").style.display = t === "controls" ? "block" : "none";
+  $("tabGameBtn").classList.toggle("on", t === "game");
+  $("tabControlsBtn").classList.toggle("on", t === "controls");
+  $("tabGameBtn").setAttribute("aria-pressed", String(t === "game"));
+  $("tabControlsBtn").setAttribute("aria-pressed", String(t === "controls"));
+  if (t === "game") $("gameDot").style.display = "none"; // you looked; cue satisfied
+  if (t === "controls" && roomCode) cancelQuitUI(); // never re-enter onto an armed quit
+};
+
+// CONTROLS tab content depends on one question: are you in a room right now?
+function renderControls() {
+  const inRoom = !!roomCode;
+  $("currentGameCard").style.display = inRoom ? "block" : "none";
+  if (inRoom) {
+    $("choiceCards").style.display = "none";
+    $("keypadPanel").style.display = "none";
+    $("cgCode").textContent = roomCode;
+    $("quitCode").textContent = roomCode;
+    cancelQuitUI(); // never re-open onto a half-finished quit confirmation
+  } else if ($("keypadPanel").style.display === "none") {
+    $("choiceCards").style.display = "grid";
+  }
+}
+
+// GAME tab when there's nothing to show: warm signpost, never a blank wall.
+function renderNoGame() {
+  const joining = !!roomCode && !state; // auto-rejoin/invite link still in flight
+  $("noGameIdle").style.display = joining ? "none" : "block";
+  $("noGameJoining").style.display = joining ? "block" : "none";
+  if (joining) $("joiningCode").textContent = roomCode;
+}
 
 // ---- connection ----
 function randomCode() {
@@ -688,10 +802,12 @@ function showToast(ev) {
   setTimeout(() => d.remove(), 4000);
 }
 
-// ---- landing actions ----
+// ---- CONTROLS actions ----
 window.newGame = () => {
   connect(randomCode());
   showScreen("lobby");
+  renderControls();
+  window.setTab("game"); // you started it — take me there
 };
 
 // ---- arcade keypad: hear "room 44", punch 4-4, you're in ----
@@ -740,6 +856,8 @@ function kpPress(d) {
       connect(code);
       showScreen("lobby");
       hideKeypad();
+      renderControls();
+      window.setTab("game"); // joined — straight to the action
     }, 400);
   } else {
     $("kpNote").textContent = "One more digit…";
@@ -768,6 +886,7 @@ window.hideKeypad = () => {
 
 // Desktop / hardware keyboard works on the keypad too.
 document.addEventListener("keydown", (e) => {
+  if (activeTab !== "controls") return; // keypad only listens on its own tab
   if ($("keypadPanel").style.display === "none") return;
   if (document.activeElement && document.activeElement.tagName === "INPUT") return;
   if (/^[0-9]$/.test(e.key)) kpPress(e.key);
@@ -775,15 +894,29 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "Escape") window.hideKeypad();
 });
 
-window.leaveRoom = () => {
+// ---- quitting: one big friendly confirmation, no browser popups ----
+window.askQuit = () => {
+  $("quitBtn").style.display = "none";
+  $("quitConfirm").style.display = "block";
+};
+function cancelQuitUI() {
+  $("quitBtn").style.display = "block";
+  $("quitConfirm").style.display = "none";
+}
+window.cancelQuit = cancelQuitUI;
+window.confirmQuit = () => leaveRoom();
+
+function leaveRoom() {
   socket?.send(JSON.stringify({ type: "leave" }));
   try { socket?.close(); } catch {}
   socket = null; state = null; roomCode = ""; currentScreen = null;
   LS.removeItem("trivia.room");
   window.hideKeypad();
-  $("landingNote").textContent = "";
-  showScreen("landing");
-};
+  showScreen("noGame");
+  renderNoGame();
+  renderControls();
+  window.setTab("controls"); // back to home base, START/JOIN front and center
+}
 
 function legacyCopy(text) {
   try {
@@ -825,10 +958,17 @@ window.sendAnswer = (choice) => {
 window.myNext = () => socket?.send(JSON.stringify({ type: "next" }));   // advances ONLY me
 
 // ---- rendering ----
+// Screens live INSIDE the GAME tab; CONTROLS is its own fixed panel.
 function showScreen(id) {
   if (currentScreen === id) return;
+  const prev = currentScreen;
   currentScreen = id;
-  ["landing", "lobby", "game", "over"].forEach(s => $(s).style.display = s === id ? "block" : "none");
+  ["noGame", "lobby", "game", "over"].forEach(s => $(s).style.display = s === id ? "block" : "none");
+  // Something real changed on the game surface while they were fiddling with
+  // CONTROLS (round started, podium up) — wink at them from the GAME tab.
+  if (activeTab === "controls" && prev !== null && id !== "noGame") {
+    $("gameDot").style.display = "block";
+  }
 }
 
 function render() {
@@ -853,7 +993,6 @@ function render() {
 
   // Playing. Only rebuild MY question/answers when my own view changed.
   showScreen("game");
-  $("gameCode").textContent = roomCode;
   const sig = `${state.myIndex}|${state.answered}|${myChoice}|${state.question ? state.question.q : ""}`;
   if (sig !== lastSig) { lastSig = sig; renderQuestionArea(); }
   else if (state.answered) updateTallyBars(); // live % updates while I sit on the reveal
@@ -1079,7 +1218,6 @@ function podSlot(p, cls) {
 }
 
 function renderOver() {
-  $("overCode").textContent = roomCode;
   const allDone = state.players.length > 0 && state.players.every(p => p.done);
   const sorted = state.players.slice().sort((a, b) => b.score - a.score);
   const me = sorted.find(p => p.id === myId);
@@ -1130,13 +1268,23 @@ LS.setItem("trivia.name", myName);
 LS.setItem("trivia.avatar", myAvatar);
 
 // Auto-rejoin: invite link (?room=NN) or the room we were already in.
+// An invite link auto-joins with ZERO taps (identity is auto-dealt, so there's
+// nothing to set up first) and lands on the GAME tab — best path for a senior.
 const params = new URLSearchParams(location.search);
 const urlRoom = params.get("room");
 const savedRoom = urlRoom && /^\d{2}$/.test(urlRoom) ? urlRoom : LS.getItem("trivia.room");
 if (savedRoom && /^\d{2}$/.test(savedRoom)) {
-  $("landingNote").textContent = `🕹 Joining room ${savedRoom}…`;
   connect(savedRoom);
-  // render() will move us to the right screen once the first state arrives.
+  showScreen("noGame");     // shows "Joining room NN…" until the first state lands
+  renderNoGame();
+  renderControls();
+  window.setTab("game");    // mid-game refresh → straight back to the game
+  // render() will swap in lobby/question/podium once the first state arrives.
+} else {
+  showScreen("noGame");
+  renderNoGame();
+  renderControls();
+  window.setTab("controls"); // first-timers start at the remote control
 }
 </script>
 </body>
