@@ -199,13 +199,13 @@
   .category-tag { display: inline-block; background: var(--neon-purple); color: #fff; font-size: 0.7rem;
     letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; }
 
-  .question { font-size: 1.2rem; line-height: 1.5; margin-bottom: 22px; }
+  .question { font-size: clamp(1.3rem, 5.5vw, 1.7rem); line-height: 1.45; margin-bottom: 22px; }
 
   .answers { display: grid; gap: 12px; }
   .answer {
     text-align: left; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan);
-    color: #fff; font-size: 1rem; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; gap: 12px;
-    min-height: 52px;
+    color: #fff; font-size: 1.1rem; padding: 16px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px;
+    min-height: 64px; line-height: 1.3;
   }
   .answer:hover:not(:disabled) { background: rgba(5, 217, 232, 0.25); transform: translateX(4px); }
   .answer .letter { font-weight: bold; color: var(--neon-yellow); flex-shrink: 0; }
@@ -241,8 +241,9 @@
   .roomcode-hint { text-align: center; color: #d8c7ff; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 14px; }
 
   .players { display: grid; gap: 8px; margin: 18px 0; }
-  .player-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;
-    border-radius: 8px; background: rgba(5,217,232,0.08); border: 1px solid rgba(255,255,255,0.15); letter-spacing: 1px; }
+  .player-row { display: flex; align-items: center; justify-content: space-between; padding: 14px;
+    border-radius: 8px; background: rgba(5,217,232,0.08); border: 1px solid rgba(255,255,255,0.15);
+    letter-spacing: 1px; font-size: 1.05rem; }
   .player-row.me { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255,46,136,0.5); }
   .player-row.offline { opacity: 0.45; }
   .player-row .pts { color: var(--neon-yellow); font-weight: bold; }
@@ -283,12 +284,107 @@
   .version { position: absolute; right: 2px; bottom: -20px; font-size: 0.7rem;
     color: #6f6396; letter-spacing: 1px; }
 
-  .results-title { text-align: center; font-size: 1.5rem; color: var(--neon-cyan); text-transform: uppercase;
-    letter-spacing: 2px; margin-bottom: 20px; }
+  .results-title { text-align: center; font-size: clamp(1.4rem, 6vw, 1.8rem); color: var(--neon-cyan); text-transform: uppercase;
+    letter-spacing: 2px; margin-bottom: 20px; line-height: 1.3; }
+
+  /* ===================== RESULT BANNER (big feedback after answering) ===================== */
+  .result { text-align: center; margin: 16px 0 6px; }
+  .result .r-big {
+    font-size: clamp(1.6rem, 7.5vw, 2.3rem); font-weight: bold; letter-spacing: 2px; text-transform: uppercase;
+    animation: popIn 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+  }
+  .result.good .r-big { color: #39ff14; text-shadow: 0 0 16px #39ff14, 0 0 40px rgba(57,255,20,0.5); }
+  .result.bad .r-big { color: var(--neon-pink); text-shadow: 0 0 14px var(--neon-pink); }
+  .result .r-sub { color: #d8c7ff; font-size: 0.95rem; letter-spacing: 1px; margin-top: 5px; }
+  .result.good .r-sub { color: #aaffa0; }
+  @keyframes popIn { from { transform: scale(0.3); opacity: 0; } }
+
+  /* ===================== CALLOUT TOASTS (lead changes, streaks, finishes) ===================== */
+  .toasts {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 60;
+    display: flex; flex-direction: column; gap: 8px; width: min(92vw, 440px); pointer-events: none;
+  }
+  .toast {
+    background: rgba(13, 2, 33, 0.94); border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 14px rgba(5, 217, 232, 0.6); color: #fff; border-radius: 12px;
+    padding: 12px 14px; text-align: center; font-size: 1.05rem; font-weight: bold; letter-spacing: 1px;
+    animation: tIn 0.35s cubic-bezier(0.2, 1.4, 0.4, 1), tOut 0.4s ease 3.4s forwards;
+  }
+  .toast.t-lead, .toast.t-win { border-color: var(--neon-yellow); box-shadow: 0 0 16px rgba(249, 240, 2, 0.6); }
+  .toast.t-streak { border-color: var(--neon-pink); box-shadow: 0 0 16px rgba(255, 46, 136, 0.6); }
+  @keyframes tIn { from { opacity: 0; transform: translateY(-16px) scale(0.9); } }
+  @keyframes tOut { to { opacity: 0; transform: translateY(-10px); } }
+
+  /* ===================== RACE TRACK (live progress everyone can shout about) ===================== */
+  .race { display: grid; gap: 10px; }
+  .race-row {
+    padding: 9px 10px 11px; border-radius: 10px;
+    background: rgba(5, 217, 232, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .race-row.me { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255, 46, 136, 0.4); }
+  .race-row.offline { opacity: 0.45; }
+  .race-top { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    font-size: 0.95rem; letter-spacing: 1px; margin-bottom: 7px; }
+  .race-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .race-right { flex-shrink: 0; }
+  .race-pts { color: var(--neon-yellow); font-weight: bold; font-size: 1.05rem; }
+  .race-status { color: var(--neon-cyan); font-size: 0.75rem; letter-spacing: 1px; }
+  .race-row.done .race-status { color: #39ff14; }
+  .race-track { position: relative; height: 26px; background: rgba(255, 255, 255, 0.07); border-radius: 13px; }
+  .race-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 13px;
+    background: linear-gradient(90deg, rgba(181, 55, 242, 0.55), rgba(255, 46, 136, 0.65));
+    transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .race-row.done .race-fill { background: linear-gradient(90deg, rgba(57, 255, 20, 0.35), rgba(57, 255, 20, 0.55)); box-shadow: 0 0 10px rgba(57, 255, 20, 0.5); }
+  .race-run {
+    position: absolute; top: 50%; left: 3%; transform: translate(-50%, -54%); font-size: 1.45rem; line-height: 1;
+    transition: left 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)); z-index: 1;
+  }
+  .race-flag { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 1rem; opacity: 0.8; }
+
+  .wins-chip {
+    font-size: 0.72rem; background: rgba(249, 240, 2, 0.14); border: 1px solid var(--neon-yellow);
+    color: var(--neon-yellow); padding: 1px 7px; border-radius: 10px; margin-left: 6px;
+    letter-spacing: 1px; white-space: nowrap; display: inline-block;
+  }
+  .sup {
+    display: inline-block; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase;
+    background: rgba(181, 55, 242, 0.25); border: 1px solid var(--neon-purple); color: #e8d5ff;
+    padding: 2px 8px; border-radius: 10px; margin-top: 5px;
+  }
+
+  /* ===================== PODIUM (game-over bragging rights) ===================== */
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 6px 0 20px; }
+  .pod { flex: 1; max-width: 160px; min-width: 0; text-align: center; }
+  .pod .p-crown { font-size: 1.7rem; animation: crownBob 1.6s ease-in-out infinite; }
+  @keyframes crownBob { 50% { transform: translateY(-6px); } }
+  .pod .p-av { font-size: 2.3rem; line-height: 1.2; }
+  .pod.gold .p-av { font-size: 3rem; }
+  .pod .p-name { font-size: 0.92rem; letter-spacing: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+  .pod .p-pts { color: var(--neon-yellow); font-weight: bold; font-size: 1.05rem; }
+  .pod .p-block {
+    margin-top: 7px; border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center;
+    font-size: 1.7rem; border: 2px solid; border-bottom: none;
+  }
+  .pod.gold .p-block { height: 88px; border-color: var(--neon-yellow);
+    background: linear-gradient(180deg, rgba(249, 240, 2, 0.32), rgba(249, 240, 2, 0.06));
+    box-shadow: 0 0 18px rgba(249, 240, 2, 0.5); }
+  .pod.silver .p-block { height: 60px; border-color: var(--neon-cyan);
+    background: linear-gradient(180deg, rgba(5, 217, 232, 0.28), rgba(5, 217, 232, 0.05)); }
+  .pod.bronze .p-block { height: 42px; border-color: var(--neon-purple);
+    background: linear-gradient(180deg, rgba(181, 55, 242, 0.3), rgba(181, 55, 242, 0.06)); }
+  .pod.me .p-name { color: var(--neon-pink); }
+
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+  .confetti i { position: absolute; top: -6vh; width: 9px; height: 14px; border-radius: 2px; opacity: 0.9;
+    animation: cfall linear forwards; }
+  @keyframes cfall { to { transform: translateY(112vh) rotate(720deg); opacity: 0.6; } }
 </style>
 </head>
 <body>
 <div class="conn" id="conn">● offline</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div class="game">
   <h1>80's Trivia</h1>
   <div class="subtitle">★ Online · Self-Paced ★</div>
@@ -385,9 +481,10 @@
     <span class="category-tag" id="catTag">Movies</span>
     <div class="question" id="questionText"></div>
     <div class="answers" id="answers"></div>
+    <div id="resultBanner"></div>
     <div class="note" id="gameNote"></div>
-    <div class="players" id="gamePlayers" style="margin-top:18px;"></div>
     <div id="gameNextControls"></div>
+    <div class="race" id="gamePlayers" style="margin-top:20px;"></div>
   </div>
 
   <!-- GAME OVER -->
@@ -399,13 +496,15 @@
       </span>
     </div>
     <div class="results-title" id="overTitle">Game Over</div>
-    <div class="leaderboard" id="leaderboard"></div>
-    <button class="btn-primary" onclick="newGameAgain()">New Game ↻</button>
+    <div id="overPodium"></div>
+    <div class="leaderboard" id="overList"></div>
+    <div class="race" id="overRace" style="display:none; margin-bottom:20px;"></div>
+    <button class="btn-primary btn-start" onclick="newGameAgain()">New Game ↻</button>
     <div class="note" id="overNote"></div>
     <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
-  <div class="version" id="version">v9</div>
+  <div class="version" id="version">v10</div>
 </div>
 
 <script type="module">
@@ -562,8 +661,31 @@ function connect(code) {
   socket.addEventListener("message", (e) => {
     const msg = JSON.parse(e.data);
     if (msg.type === "welcome") return;
+    if (msg.type === "event") { showToast(msg); return; }
     if (msg.type === "state") { state = msg; render(); }
   });
+}
+
+// ---- callout toasts: things worth shouting across the room about ----
+function showToast(ev) {
+  const isMe = ev.cid === myCid;
+  if (ev.kind === "finish" && isMe) return; // you already see your own finish screen
+  const nm = isMe ? "YOU" : ev.name;
+  let text, cls;
+  switch (ev.kind) {
+    case "lead":   text = `👑 ${nm} just took the lead!`; cls = "t-lead"; break;
+    case "streak": text = isMe ? `🔥 YOU'RE on a ${ev.n} streak!` : `🔥 ${nm} is on a ${ev.n} streak!`; cls = "t-streak"; break;
+    case "finish": text = `🏁 ${nm} finished with ${ev.n} pts!`; cls = "t-finish"; break;
+    case "win":    text = isMe ? `🏆 YOU win the round!` : `🏆 ${nm} wins the round!`; cls = "t-win"; break;
+    default: return;
+  }
+  const d = document.createElement("div");
+  d.className = "toast " + cls;
+  d.textContent = text;
+  const box = $("toasts");
+  box.appendChild(d);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => d.remove(), 4000);
 }
 
 // ---- landing actions ----
@@ -714,6 +836,7 @@ function render() {
   myId = state.myId || myCid;
 
   if (state.myIndex !== lastIndex) { myChoice = null; lastIndex = state.myIndex; }
+  if (!state.done) confettiDone = false;
 
   if (state.phase === "lobby") {
     showScreen("lobby");
@@ -733,18 +856,23 @@ function render() {
   $("gameCode").textContent = roomCode;
   const sig = `${state.myIndex}|${state.answered}|${myChoice}|${state.question ? state.question.q : ""}`;
   if (sig !== lastSig) { lastSig = sig; renderQuestionArea(); }
-  $("gamePlayers").innerHTML = scoreboardHTML();
+  else if (state.answered) updateTallyBars(); // live % updates while I sit on the reveal
+  renderRace($("gamePlayers"));
 }
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function winsChip(p) {
+  return p.wins ? `<span class="wins-chip">🏆×${p.wins}</span>` : "";
+}
+
 function lobbyRow(p) {
   const me = p.id === myId ? '<span class="badge">YOU</span>' : "";
   const dot = p.online ? "" : '<span class="badge" style="background:#444;">AWAY</span>';
   return `<div class="player-row ${p.id === myId ? "me" : ""} ${p.online ? "" : "offline"}">
-            <span>${escapeHtml(p.name)}${me}${dot}</span><span></span>
+            <span>${escapeHtml(p.name)}${me}${dot}</span><span>${winsChip(p)}</span>
           </div>`;
 }
 
@@ -803,63 +931,196 @@ function renderQuestionArea() {
     });
   }
 
+  const rb = $("resultBanner");
   if (reveal) {
-    $("gameNote").textContent = state.iCorrect ? "✔ RAD! +100" : "✗ Bogus!";
-    $("gameNote").style.color = state.iCorrect ? "#39ff14" : "var(--neon-pink)";
-  } else if (myChoice !== null) {
-    $("gameNote").textContent = "✓ Locked in…";
-    $("gameNote").style.color = "var(--neon-cyan)";
+    const good = !!state.iCorrect;
+    const i = state.myIndex;
+    const phrase = good ? GOOD_WORDS[i % GOOD_WORDS.length] : SOFT_WORDS[i % SOFT_WORDS.length];
+    const sub = good ? "+100 points!" : SOFT_SUBS[i % SOFT_SUBS.length];
+    rb.className = "result " + (good ? "good" : "bad");
+    rb.innerHTML = `<div class="r-big">${good ? "✔ " : ""}${phrase}</div><div class="r-sub">${sub}</div>`;
+    $("gameNote").textContent = "";
   } else {
-    $("gameNote").textContent = "Pick your answer!";
+    rb.className = "";
+    rb.innerHTML = "";
+    $("gameNote").textContent = myChoice !== null ? "✓ Locked in…" : "Pick your answer!";
     $("gameNote").style.color = "var(--neon-cyan)";
   }
 
   const ctrl = $("gameNextControls");
   if (reveal) {
     const last = state.myIndex + 1 >= state.total;
-    ctrl.innerHTML = `<button class="btn-primary" onclick="myNext()">${last ? "Finish ▶" : "Next ▶"}</button>`;
+    ctrl.innerHTML = `<button class="btn-primary btn-start" onclick="myNext()">${last ? "🏁 Finish" : "Next ▶"}</button>`;
   } else {
     ctrl.innerHTML = "";
   }
 }
 
-function scoreboardHTML() {
-  const sorted = state.players.slice().sort((a, b) => (b.score - a.score) || (b.progress - a.progress));
-  return sorted.map((p, i) => {
-    const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-    const away = p.online ? "" : '<span class="badge" style="background:#444;">AWAY</span>';
-    const status = p.done ? '<span class="prog done">✓ done</span>' : `<span class="prog">${p.progress}/${state.total}</span>`;
-    return `<div class="player-row ${p.id === myId ? "me" : ""} ${p.online ? "" : "offline"}">
-              <span><span class="rank-num">${i + 1}.</span>${escapeHtml(p.name)}${you}${away}</span>
-              <span><span class="pts">${p.score}</span> ${status}</span>
-            </div>`;
-  }).join("");
+const GOOD_WORDS = ["TUBULAR!", "RADICAL!", "RIGHTEOUS!", "BODACIOUS!", "TOTALLY RAD!", "GNARLY GOOD!", "AWESOME!"];
+const SOFT_WORDS = ["BOGUS!", "WHAMMY!", "OOF, CLOSE!", "GNARLY MISS!", "WIPEOUT!"];
+const SOFT_SUBS = [
+  "No points — but mega style.",
+  "Even Pac-Man missed sometimes.",
+  "Shake it off — next one's yours!",
+  "The green one had it. Onward!",
+  "Still totally rad. Keep going!",
+];
+
+// Update only the answer-distribution bars in place (so they don't re-animate from zero).
+function updateTallyBars() {
+  if (!state.tally) return;
+  const total = state.answeredCount || 0;
+  const rows = $("answers").querySelectorAll(".answer");
+  rows.forEach((btn, i) => {
+    const n = state.tally[i] || 0;
+    const pct = total ? Math.round((n / total) * 100) : 0;
+    const fill = btn.querySelector(".fill");
+    const lab = btn.querySelector(".pct");
+    if (fill) fill.style.width = pct + "%";
+    if (lab) lab.textContent = `${pct}% · ${n}`;
+  });
+}
+
+// ---- race track: avatars run toward the finish flag; leader wears the crown ----
+function splitName(n) {
+  const sp = n.indexOf(" ");
+  if (sp > 0 && /[^\x00-\x7F]/.test(n.slice(0, sp))) return { av: n.slice(0, sp), label: n.slice(sp + 1) };
+  return { av: "🏃", label: n };
+}
+const cssEsc = s => (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/["\\]/g, "\\$&");
+
+function uniqueLeaderId(players) {
+  let top = null, topScore = -1, tie = false;
+  for (const p of players) {
+    if (p.score > topScore) { topScore = p.score; top = p.id; tie = false; }
+    else if (p.score === topScore) tie = true;
+  }
+  return (!tie && topScore > 0) ? top : null;
+}
+
+function raceRowHTML(p) {
+  return `<div class="race-row" data-cid="${escapeHtml(p.id)}">
+            <div class="race-top">
+              <span class="race-name"></span>
+              <span class="race-right"><span class="race-pts"></span> <span class="race-status"></span></span>
+            </div>
+            <div class="race-track"><div class="race-fill"></div><span class="race-flag">🏁</span><span class="race-run"></span></div>
+          </div>`;
+}
+
+// Rows keep a stable order and are patched in place, so runners glide along the
+// track instead of jumping. Horizontal position = who's furthest; crown = who's winning.
+function renderRace(container) {
+  const ps = state.players;
+  const sig = ps.map(p => p.id).join("|") + "#" + state.total;
+  if (container.dataset.sig !== sig) {
+    container.dataset.sig = sig;
+    container.innerHTML = ps.map(raceRowHTML).join("");
+  }
+  const leader = uniqueLeaderId(ps);
+  ps.forEach(p => {
+    const row = container.querySelector(`.race-row[data-cid="${cssEsc(p.id)}"]`);
+    if (!row) return;
+    row.classList.toggle("me", p.id === myId);
+    row.classList.toggle("offline", !p.online);
+    row.classList.toggle("done", !!p.done);
+    row.querySelector(".race-name").innerHTML =
+      (p.id === leader ? "👑 " : "") + escapeHtml(p.name) +
+      (p.id === myId ? '<span class="badge">YOU</span>' : "") + winsChip(p) +
+      (p.online ? "" : '<span class="badge" style="background:#444;">AWAY</span>');
+    row.querySelector(".race-pts").textContent = p.score;
+    row.querySelector(".race-status").textContent = p.done ? "✓ done" : `${p.progress}/${state.total}`;
+    const frac = state.total ? Math.min(p.progress / state.total, 1) : 0;
+    row.querySelector(".race-fill").style.width = (frac * 100) + "%";
+    const run = row.querySelector(".race-run");
+    run.style.left = (3 + frac * 94) + "%";
+    run.textContent = p.done ? "🎉" : splitName(p.name).av;
+  });
+}
+
+// ---- game over: podium moment + persistent bragging rights ----
+let confettiDone = false;
+
+function dropConfetti() {
+  const colors = ["#ff2e88", "#05d9e8", "#b537f2", "#f9f002", "#39ff14"];
+  const box = document.createElement("div");
+  box.className = "confetti";
+  for (let i = 0; i < 36; i++) {
+    const c = document.createElement("i");
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = colors[i % colors.length];
+    c.style.animationDuration = (2.4 + Math.random() * 1.8) + "s";
+    c.style.animationDelay = (Math.random() * 0.9) + "s";
+    box.appendChild(c);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 5500);
+}
+
+function supBadges(p) {
+  let out = "";
+  if (p.done && state.total > 0 && p.score === state.total * 100) out += '<div><span class="sup">💯 Perfect round</span></div>';
+  else if (p.bestStreak >= 4) out += `<div><span class="sup">🔥 ${p.bestStreak} in a row</span></div>`;
+  return out;
+}
+
+function podSlot(p, cls) {
+  const medal = ["🥇", "🥈", "🥉"][p.rank] || "";
+  const { av, label } = splitName(p.name);
+  return `<div class="pod ${cls} ${p.id === myId ? "me" : ""}">
+            ${cls === "gold" ? '<div class="p-crown">👑</div>' : ""}
+            <div class="p-av">${av}</div>
+            <div class="p-name">${escapeHtml(label)}${p.id === myId ? " (you)" : ""}</div>
+            <div class="p-pts">${p.score} pts</div>
+            ${p.wins ? `<div><span class="wins-chip">🏆×${p.wins}</span></div>` : ""}
+            ${supBadges(p)}
+            <div class="p-block">${medal}</div>
+          </div>`;
 }
 
 function renderOver() {
   $("overCode").textContent = roomCode;
   const allDone = state.players.length > 0 && state.players.every(p => p.done);
   const sorted = state.players.slice().sort((a, b) => b.score - a.score);
-  const top = sorted.length ? sorted[0].score : 0;
   const me = sorted.find(p => p.id === myId);
 
-  $("overTitle").textContent = allDone
-    ? (sorted.filter(p => p.score === top).length > 1 ? "Final Results — Tie!" : `${sorted[0].name} Wins!`)
-    : "You're Done!";
+  if (!allDone) {
+    // I'm done; others are still racing. Give me the live race to heckle from the couch.
+    $("overTitle").textContent = "🏁 You Finished!";
+    $("overPodium").innerHTML = "";
+    $("overList").innerHTML = "";
+    $("overRace").style.display = "grid";
+    renderRace($("overRace"));
+    $("overNote").textContent = `You scored ${me ? me.score : 0} — watch the race, the podium appears when everyone's in.`;
+    return;
+  }
 
-  $("leaderboard").innerHTML = sorted.map((p, rank) => {
-    const lead = (p.score === top && allDone) ? "👑 " : `${rank + 1}. `;
+  $("overRace").style.display = "none";
+  // Dense ranks so ties share a medal.
+  let rank = 0, prevScore = null;
+  const ranked = sorted.map((p, i) => {
+    if (p.score !== prevScore) { rank = i; prevScore = p.score; }
+    return { ...p, rank };
+  });
+  const winners = ranked.filter(r => r.rank === 0);
+  $("overTitle").textContent = winners.length > 1 ? "🤝 It's a Tie!" : `${winners[0].name} Wins!`;
+
+  // Podium: 2nd · 1st · 3rd, like a real awards stand.
+  const podCls = ["gold", "silver", "bronze"];
+  const podPs = ranked.slice(0, 3).map((p, i) => ({ p, cls: podCls[i] }));
+  const order = [podPs[1], podPs[0], podPs[2]].filter(Boolean);
+  $("overPodium").innerHTML = `<div class="podium">${order.map(s => podSlot(s.p, s.cls)).join("")}</div>`;
+
+  $("overList").innerHTML = ranked.slice(3).map(p => {
     const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-    const status = p.done ? "" : ` <span class="prog">${p.progress}/${state.total}</span>`;
-    return `<div class="lb-row ${(p.score === top && allDone) ? "winner" : ""} ${p.id === myId ? "me" : ""}">
-              <span>${lead}${escapeHtml(p.name)}${you}${status}</span>
+    return `<div class="lb-row ${p.id === myId ? "me" : ""}">
+              <span>${p.rank + 1}. ${escapeHtml(p.name)}${you}${winsChip(p)}</span>
               <span class="lb-pts">${p.score} pts</span>
             </div>`;
   }).join("");
 
-  $("overNote").textContent = allDone
-    ? "Hit New Game to play another round — everyone stays in the room."
-    : `You scored ${me ? me.score : 0}. Others are still playing — the board updates live!`;
+  $("overNote").textContent = "🏆 = round wins this session. Same crew, fresh questions — hit New Game for the rematch!";
+  if (!confettiDone) { confettiDone = true; dropConfetti(); }
 }
 
 // ---- boot ----
