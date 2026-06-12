@@ -29,9 +29,11 @@ npm run dev
 
 This starts the PartyKit server at **http://127.0.0.1:1999**. Then:
 
-1. Open **http://127.0.0.1:1999** in one browser window → click **Host New Game**. Note the 4-letter room code.
-2. Open the same URL in a **second window** (or your phone on the same Wi-Fi — use the `http://<your-ip>:1999` address PartyKit prints) → enter the code → **Join Game**.
-3. As the host, hit **Start Game**. Both windows get the same question at once; answer in each and watch the scoreboard update live.
+1. Open **http://127.0.0.1:1999** in one browser window. You're auto-dealt an 80s persona (tap the dice/face/name to change it). Tap the big 🚀 **START** card. Note the 2-digit room code.
+2. Open the same URL in a **second window** (or your phone on the same Wi-Fi — use the `http://<your-ip>:1999` address PartyKit prints) → tap 🔢 **JOIN** → punch the code on the keypad (the second digit auto-joins).
+3. In either window, hit **Start Game** (there's no host — anyone can start). Each window gets the shared deck at its own pace; watch the race-track scoreboard move and the callout toasts (lead changes, streaks, finishes) flash in both windows.
+4. **Refresh either tab** mid-game — it reconnects and resumes on the same question with the same score and persona (identity is stored in `localStorage`).
+5. Finish a round to see the podium + confetti, then **New Game** — 🏆 win chips persist across rounds; scores reset.
 
 Press `Ctrl+C` in the terminal to stop the server.
 
@@ -45,49 +47,61 @@ Save this as `_wstest.mjs`, run it against a live `npm run dev`, then delete it:
 
 ```js
 // _wstest.mjs — run `npm run dev` in another terminal first, then: node _wstest.mjs
-const ROOM = "TEST" + Math.floor(Math.random() * 1000);
+// Players are keyed by a stable client id (cid) sent in "join" — NOT the socket.
+const ROOM = String(Math.floor(Math.random() * 90) + 10);  // 2-digit code
 const url = `ws://127.0.0.1:1999/parties/main/${ROOM}`;
 
-function client(name) {
-  const ws = new WebSocket(url);
-  const c = { ws, name, id: null, last: null };
-  ws.addEventListener("message", (e) => {
+function client(cid, name) {
+  let ws = new WebSocket(url);
+  const c = { cid, name, last: null };
+  const wire = (s) => s.addEventListener("message", (e) => {
     const m = JSON.parse(e.data);
-    if (m.type === "welcome") c.id = m.id;
     if (m.type === "state") c.last = m;
   });
+  wire(ws);
   c.send = (o) => ws.send(JSON.stringify(o));
   c.open = new Promise((r) => ws.addEventListener("open", r));
+  c.join = () => c.send({ type: "join", cid, name });
+  c.close = () => ws.close();
+  c.reconnect = () => { ws = new WebSocket(url); wire(ws); return new Promise((r) => ws.addEventListener("open", r)); };
   return c;
 }
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 let pass = 0, fail = 0;
 const check = (label, cond) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " " + label); };
 
-const A = client("Alice"), B = client("Bob");
+const A = client("cid-alice", "Alice"), B = client("cid-bob", "Bob");
 await Promise.all([A.open, B.open]);
-A.send({ type: "join", name: "Alice" });
-B.send({ type: "join", name: "Bob" });
+A.join(); B.join();
 await wait(300);
 
-check("both got an id", !!A.id && !!B.id);
-check("A is host", A.last.hostId === A.id);
+check("A's id is its stable cid", A.last.myId === "cid-alice");
+check("no host concept", A.last.hostId === undefined);
 check("lobby has 2 players", A.last.players.length === 2);
 
-A.send({ type: "start", qpp: 3 });
+B.send({ type: "newgame", n: 4 });   // anyone can start
 await wait(200);
-check("game started", A.last.phase === "question");
-check("deck size 6", A.last.total === 6);
+check("non-creator started game", A.last.phase === "playing");
+check("deck size honored (4)", A.last.total === 4);
 check("answer key hidden", A.last.question.correct === undefined && A.last.correct === null);
 
 A.send({ type: "answer", choice: 0 });
-B.send({ type: "answer", choice: 1 });
-await wait(200);
-check("auto-revealed", A.last.phase === "reveal");
-check("correct revealed", typeof A.last.correct === "number");
+await wait(150);
+const idx = A.last.myIndex, score = A.last.players.find(p => p.id === "cid-alice").score;
+
+A.close();                            // simulate a refresh / dropped phone
+await wait(250);
+check("dropped player not deleted", !!B.last.players.find(p => p.id === "cid-alice"));
+check("dropped player marked offline", B.last.players.find(p => p.id === "cid-alice").online === false);
+
+await A.reconnect(); A.join();         // reconnect with the SAME cid
+await wait(250);
+check("resumed same question", A.last.myIndex === idx);
+check("resumed same score", A.last.players.find(p => p.id === "cid-alice").score === score);
+check("back online", B.last.players.find(p => p.id === "cid-alice").online === true);
 
 console.log(`\n${pass} passed, ${fail} failed`);
-A.ws.close(); B.ws.close();
+A.close(); B.close();
 process.exit(fail ? 1 : 0);
 ```
 
@@ -95,9 +109,15 @@ process.exit(fail ? 1 : 0);
 node _wstest.mjs && rm _wstest.mjs
 ```
 
-When this repo was built, the full version of this test ran **20/20 green** against a live
-PartyKit dev server (host handoff, answer-key hidden until reveal, auto-reveal, scoring,
-game-over, and restart all verified).
+When this rework landed, this suite ran green against a live PartyKit dev server
+(no-host start, stable-identity resume after a drop, offline marking, answer-key hidden,
+scoring, and New Game all verified).
+
+To also exercise the social layer, extend the script: collect `{type:"event"}` messages
+(kinds: `lead`, `streak`, `finish`, `win`), play a full round with two clients
+(`answer` + `next` in a loop), and assert that a `win` event fires, `players[].wins`
+increments exactly once per round, and wins survive both a reconnect and a `newgame`.
+The full-flow suite ran **15/15 green** when the race-track/wins/podium pass landed.
 
 ## Deploy
 
