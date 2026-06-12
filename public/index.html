@@ -645,8 +645,20 @@ import PartySocket from "https://esm.sh/partysocket@1.0.2";
 const $ = id => document.getElementById(id);
 const LETTERS = ["A", "B", "C", "D"];
 
-// ---- stable identity (survives refresh, reconnect, dropped phone) ----
+// ---- version gate: a new deploy starts every device fresh ----
+// If the build stamp changed since this device last played, quit any saved
+// game and clear stored history (room, identity, persona) BEFORE the identity
+// and auto-rejoin logic below read from localStorage. This keeps stale clients
+// from dragging old-room state into a new build.
 const LS = window.localStorage;
+const BUILD = (document.getElementById("version").textContent || "").trim();
+const lastBuild = LS.getItem("trivia.version");
+if (lastBuild && lastBuild !== BUILD) {
+  ["trivia.room", "trivia.cid", "trivia.name", "trivia.avatar"].forEach(k => LS.removeItem(k));
+}
+LS.setItem("trivia.version", BUILD);
+
+// ---- stable identity (survives refresh, reconnect, dropped phone) ----
 function ensureCid() {
   let c = LS.getItem("trivia.cid");
   if (!c) {

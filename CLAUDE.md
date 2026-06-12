@@ -56,7 +56,11 @@ No test framework. Verification = throwaway WebSocket scripts against `npm run d
 - **`party/questions.js`** — question bank WITH answers; server-side only.
 - **`public/index.html`** — the entire client in one file (HTML+CSS+JS, no build
   step; PartySocket via esm.sh). localStorage keys: `trivia.cid`, `trivia.name`,
-  `trivia.avatar`, `trivia.room` (drives auto-rejoin on load).
+  `trivia.avatar`, `trivia.room` (drives auto-rejoin on load), `trivia.version`.
+  **Version gate**: at boot, if the build stamp differs from stored
+  `trivia.version`, ALL trivia.* keys are cleared (quit saved game, fresh
+  identity) before identity/auto-rejoin logic runs — new deploys start every
+  device fresh. Boot tab rule: in a game → Game tab; not in a game → Controls.
 - **`scripts/bump-build.mjs`** — predeploy hook; regexes for `id="version">v(\d+)<`
   in public/index.html and increments it. NEVER change that element's shape.
 
