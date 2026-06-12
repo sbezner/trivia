@@ -40,6 +40,7 @@
     box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 30px rgba(5, 217, 232, 0.1);
     padding: 32px;
   }
+  @media (max-width: 480px) { .game { padding: 22px 16px; } }
   h1 {
     text-align: center; font-size: clamp(1.6rem, 5.5vw, 2.6rem); line-height: 1.1;
     letter-spacing: 2px; text-transform: uppercase; color: var(--neon-yellow);
@@ -62,6 +63,7 @@
   }
   .btn-primary:hover:not(:disabled) { background: var(--neon-purple); box-shadow: 0 0 18px var(--neon-purple); transform: translateY(-2px); }
   .btn-primary:disabled { opacity: 0.45; cursor: default; }
+  .btn-start { font-size: 1.35rem; padding: 20px; border-radius: 12px; margin-top: 14px; }
   .btn-ghost {
     display: block; width: 100%; background: transparent; color: var(--neon-cyan);
     border: 2px solid var(--neon-cyan); font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;
@@ -70,7 +72,7 @@
   .btn-ghost:hover { background: rgba(5,217,232,0.12); }
   .btn-link {
     display: inline-block; background: none; color: #8a7db8; font-size: 0.8rem;
-    letter-spacing: 1px; text-transform: uppercase; text-decoration: underline; padding: 6px;
+    letter-spacing: 1px; text-transform: uppercase; text-decoration: underline; padding: 12px 6px;
   }
   .btn-link:hover { color: var(--neon-pink); }
 
@@ -80,23 +82,100 @@
   }
   input.field:focus { outline: none; border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
   input.field::placeholder { color: #9a8fc0; }
-  input.code { letter-spacing: 12px; text-align: center; font-size: 2rem; font-weight: bold; padding-left: 12px; }
 
-  .divider { text-align: center; color: #6f6396; letter-spacing: 3px; margin: 18px 0; font-size: 0.8rem; }
+  /* ===================== IDENTITY CARD (who are you) ===================== */
+  .id-card {
+    background: rgba(181, 55, 242, 0.12); border: 1px solid var(--neon-purple);
+    border-radius: 14px; padding: 14px; margin-bottom: 20px;
+  }
+  .id-label { text-align: center; text-transform: uppercase; letter-spacing: 3px;
+    font-size: 0.72rem; color: var(--neon-cyan); margin-bottom: 10px; }
+  .id-row { display: flex; gap: 10px; justify-content: center; align-items: stretch; }
+  .id-avatar {
+    flex: 0 0 64px; height: 64px; font-size: 2.1rem; line-height: 1;
+    border-radius: 12px; background: rgba(5, 217, 232, 0.1);
+    border: 2px solid var(--neon-cyan); box-shadow: 0 0 10px rgba(5,217,232,0.4);
+  }
+  .id-avatar:hover { transform: scale(1.06); }
+  .id-name {
+    flex: 1; min-width: 0; height: 64px; font-size: clamp(1.05rem, 4.5vw, 1.35rem); font-weight: bold;
+    letter-spacing: 1px; color: #fff; background: transparent;
+    border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px;
+  }
+  .id-name:hover { border-color: var(--neon-pink); }
+  .id-dice {
+    flex: 0 0 64px; height: 64px; font-size: 1.9rem; line-height: 1;
+    border-radius: 12px; background: rgba(249, 240, 2, 0.1);
+    border: 2px solid var(--neon-yellow); box-shadow: 0 0 10px rgba(249,240,2,0.3);
+  }
+  .id-dice:hover { transform: scale(1.06) rotate(12deg); }
+  .id-dice.rolling { animation: roll 0.45s ease; }
+  @keyframes roll { 50% { transform: rotate(360deg) scale(1.25); } }
+  .id-hint { text-align: center; color: #9a8fc0; font-size: 0.72rem; letter-spacing: 1px; margin-top: 9px; }
+  input.name-edit { font-size: 1.25rem; text-align: center; letter-spacing: 1px;
+    height: 64px; margin-bottom: 0; border-color: var(--neon-pink); }
+  .avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 12px; }
+  .avatar-grid button {
+    font-size: 1.7rem; line-height: 1; min-height: 52px; border-radius: 10px;
+    background: rgba(5, 217, 232, 0.08); border: 2px solid transparent;
+  }
+  .avatar-grid button:hover { background: rgba(5, 217, 232, 0.22); transform: scale(1.08); }
+  .avatar-grid button.sel { border-color: var(--neon-yellow); box-shadow: 0 0 8px var(--neon-yellow); }
 
-  /* landing layout */
-  .name-label { display: block; margin-bottom: 8px; }
-  input.name-top {
-    font-size: 1.3rem; text-align: center; letter-spacing: 1px; padding: 16px;
-    border-color: var(--neon-pink); margin-bottom: 22px;
+  /* ===================== GIANT CHOICE CARDS ===================== */
+  .choice-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .choice {
+    min-height: 170px; border-radius: 16px; padding: 18px 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
   }
-  .panel-hint { text-align: center; color: #9a8fc0; font-size: 0.78rem; letter-spacing: 1px; margin-top: 10px; }
-  .action-row { display: flex; gap: 10px; align-items: stretch; }
-  .btn-primary.new-btn { flex: 1; margin-top: 0; font-size: 0.85rem; letter-spacing: 1px; padding: 13px 8px; }
-  .btn-ghost.join-btn { flex: 1; margin-top: 0; font-size: 0.85rem; letter-spacing: 1px; padding: 13px 8px; }
-  input.code.join-code {
-    flex: 0 0 78px; width: 78px; margin-bottom: 0; letter-spacing: 6px; font-size: 1.4rem; padding: 8px 0 8px 6px;
+  .choice .ci { font-size: 3rem; line-height: 1; }
+  .choice .ct { font-size: 1.35rem; font-weight: bold; letter-spacing: 3px; text-transform: uppercase; }
+  .choice .cs { font-size: 0.74rem; letter-spacing: 1px; text-transform: uppercase; opacity: 0.85; }
+  .choice.start {
+    background: var(--neon-pink); color: #fff;
+    box-shadow: 0 0 18px var(--neon-pink);
   }
+  .choice.start .ci { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.18); } }
+  .choice.start:hover { background: var(--neon-purple); box-shadow: 0 0 24px var(--neon-purple); transform: translateY(-3px); }
+  .choice.join {
+    background: rgba(5, 217, 232, 0.08); color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan); box-shadow: 0 0 14px rgba(5, 217, 232, 0.4);
+  }
+  .choice.join:hover { background: rgba(5, 217, 232, 0.2); transform: translateY(-3px); }
+  .choice:active { transform: scale(0.97); }
+
+  /* ===================== ARCADE KEYPAD (join by code) ===================== */
+  .kp-prompt { text-align: center; color: var(--neon-yellow); letter-spacing: 2px;
+    text-transform: uppercase; font-size: 0.95rem; line-height: 1.6; margin-bottom: 4px; }
+  .digits { display: flex; gap: 16px; justify-content: center; margin: 16px 0 20px; }
+  .digits.shake { animation: shake 0.3s ease; }
+  @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  .digit {
+    width: 86px; height: 106px; border: 3px solid rgba(5, 217, 232, 0.5); border-radius: 14px;
+    font-size: 3.6rem; font-weight: bold; display: flex; align-items: center; justify-content: center;
+    color: var(--neon-yellow); background: rgba(5, 217, 232, 0.07);
+    text-shadow: 0 0 12px var(--neon-pink);
+  }
+  .digit.active { border-color: var(--neon-pink); box-shadow: 0 0 14px rgba(255, 46, 136, 0.6); }
+  .digit.active::after { content: "▮"; color: var(--neon-pink); font-size: 2.6rem; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .digit.locked { border-color: #39ff14; box-shadow: 0 0 16px #39ff14; color: #39ff14; text-shadow: 0 0 12px #39ff14; }
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 330px; margin: 0 auto; }
+  .key {
+    min-height: 66px; font-size: 1.8rem; font-weight: bold; border-radius: 12px;
+    background: rgba(181, 55, 242, 0.2); border: 2px solid var(--neon-purple); color: #fff;
+    box-shadow: 0 0 8px rgba(181, 55, 242, 0.35);
+  }
+  .key:hover:not(:disabled) { background: rgba(181, 55, 242, 0.45); }
+  .key:active:not(:disabled) { transform: scale(0.93); background: var(--neon-pink); border-color: var(--neon-pink); }
+  .key.aux { background: transparent; border-color: rgba(255,255,255,0.25); color: #9a8fc0; box-shadow: none; font-size: 1.5rem; }
+  .key.ghost { visibility: hidden; }
+  .kp-note { text-align: center; min-height: 24px; margin-top: 14px; color: var(--neon-cyan); letter-spacing: 1px; font-size: 0.9rem; }
+  .kp-back { display: block; margin: 6px auto 0; }
+
+  .landing-note { text-align: center; min-height: 20px; margin-top: 14px; color: var(--neon-cyan); letter-spacing: 1px; font-size: 0.85rem; }
 
   /* room banner (shown during play so people can join any time) */
   .roombar {
@@ -108,7 +187,7 @@
   .roombar .rb-actions { display: flex; gap: 8px; }
   .roombar button {
     background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
-    border-radius: 6px; padding: 5px 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+    border-radius: 6px; padding: 8px 12px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
   }
   .roombar button:hover { background: rgba(5,217,232,0.15); }
 
@@ -126,6 +205,7 @@
   .answer {
     text-align: left; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan);
     color: #fff; font-size: 1rem; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; gap: 12px;
+    min-height: 52px;
   }
   .answer:hover:not(:disabled) { background: rgba(5, 217, 232, 0.25); transform: translateX(4px); }
   .answer .letter { font-weight: bold; color: var(--neon-yellow); flex-shrink: 0; }
@@ -146,24 +226,43 @@
 
   .note { text-align: center; margin-top: 18px; min-height: 22px; font-size: 0.95rem; letter-spacing: 1px; color: var(--neon-cyan); }
 
-  /* big room code in the lobby */
-  .roomcode-label { text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); margin-bottom: 6px; }
-  .roomcode { text-align: center; font-size: 4rem; letter-spacing: 14px; color: var(--neon-yellow);
-    text-shadow: 0 0 14px var(--neon-pink); margin-bottom: 4px; padding-left: 14px; }
+  /* ===================== LOBBY ===================== */
+  .roomcode-label { text-align: center; text-transform: uppercase; letter-spacing: 3px;
+    font-size: 0.78rem; color: var(--neon-cyan); margin-bottom: 2px; }
+  .roomcode {
+    text-align: center; font-size: clamp(4.5rem, 24vw, 7rem); line-height: 1.1; font-weight: bold;
+    letter-spacing: 18px; padding-left: 18px; color: var(--neon-yellow);
+    text-shadow: 0 0 18px var(--neon-pink), 0 0 40px var(--neon-pink);
+    animation: codeglow 2.2s ease-in-out infinite;
+  }
+  @keyframes codeglow {
+    50% { text-shadow: 0 0 28px var(--neon-pink), 0 0 60px var(--neon-purple); }
+  }
+  .roomcode-hint { text-align: center; color: #d8c7ff; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 14px; }
 
   .players { display: grid; gap: 8px; margin: 18px 0; }
-  .player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+  .player-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px;
     border-radius: 8px; background: rgba(5,217,232,0.08); border: 1px solid rgba(255,255,255,0.15); letter-spacing: 1px; }
   .player-row.me { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255,46,136,0.5); }
   .player-row.offline { opacity: 0.45; }
   .player-row .pts { color: var(--neon-yellow); font-weight: bold; }
   .badge { font-size: 0.65rem; background: var(--neon-purple); padding: 2px 7px; border-radius: 10px; margin-left: 8px; letter-spacing: 1px; }
 
-  .stepper { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 8px 0 4px; }
-  .stepper button { width: 40px; height: 40px; border-radius: 8px; background: var(--neon-purple); color: #fff;
-    font-size: 1.3rem; font-weight: bold; box-shadow: 0 0 10px var(--neon-purple); }
+  .id-mini { text-align: center; margin-bottom: 4px; }
+  .id-chip {
+    background: rgba(255, 46, 136, 0.12); border: 1px dashed var(--neon-pink); color: #fff;
+    border-radius: 10px; padding: 10px 16px; font-size: 1rem; letter-spacing: 1px; min-height: 48px;
+  }
+  .id-chip:hover { background: rgba(255, 46, 136, 0.25); }
+  .id-chip .edit-hint { color: var(--neon-cyan); font-size: 0.72rem; text-transform: uppercase; margin-left: 8px; }
+  .id-editor { margin: 10px 0 4px; padding: 12px; border: 1px solid var(--neon-purple);
+    border-radius: 12px; background: rgba(181, 55, 242, 0.1); }
+
+  .stepper { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 10px 0 4px; }
+  .stepper button { width: 56px; height: 56px; border-radius: 12px; background: var(--neon-purple); color: #fff;
+    font-size: 1.7rem; font-weight: bold; box-shadow: 0 0 10px var(--neon-purple); }
   .stepper button:hover { background: var(--neon-pink); }
-  .stepper .value { font-size: 1.6rem; color: var(--neon-yellow); min-width: 44px; text-align: center; }
+  .stepper .value { font-size: 2rem; color: var(--neon-yellow); min-width: 56px; text-align: center; }
   .setup-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); text-align: center; }
 
   .leaderboard { display: grid; gap: 10px; margin-bottom: 20px; }
@@ -196,30 +295,77 @@
 
   <!-- LANDING -->
   <div id="landing" class="screen">
-    <label class="setup-label name-label" for="nameInput">Your Name</label>
-    <input class="field name-top" id="nameInput" type="text" maxlength="16" placeholder="Tap to type your name">
-
-    <div class="action-row">
-      <button class="btn-primary new-btn" onclick="newGame()">Start New Game</button>
-      <button class="btn-ghost join-btn" onclick="joinGame()">Join a Game</button>
-      <input class="field code join-code" id="codeInput" type="tel" inputmode="numeric" maxlength="2" placeholder="00">
+    <!-- who are you: zero typing required -->
+    <div class="id-card">
+      <div class="id-label">★ You Are ★</div>
+      <div class="id-row" id="idRow">
+        <button class="id-avatar" id="avatarBtn" onclick="toggleAvatars()" aria-label="Change your face">👾</button>
+        <button class="id-name" id="nameBtn" onclick="editName()" aria-label="Change your name">Rad Max</button>
+        <button class="id-dice" id="diceBtn" onclick="shuffleIdentity()" aria-label="Random new name">🎲</button>
+      </div>
+      <input class="field name-edit" id="nameInput" type="text" maxlength="13" style="display:none" aria-label="Type your name">
+      <div class="avatar-grid" id="avatarGrid" style="display:none"></div>
+      <div class="id-hint">tap the face · tap the name · or roll the dice</div>
     </div>
-    <div class="panel-hint">Joining? Enter your friend's 2-digit code in the box.</div>
+
+    <!-- the big choice -->
+    <div class="choice-cards" id="choiceCards">
+      <button class="choice start" onclick="newGame()">
+        <span class="ci">🚀</span>
+        <span class="ct">Start</span>
+        <span class="cs">a new game</span>
+      </button>
+      <button class="choice join" onclick="showKeypad()">
+        <span class="ci">🔢</span>
+        <span class="ct">Join</span>
+        <span class="cs">got a code?</span>
+      </button>
+    </div>
+
+    <!-- arcade keypad (revealed by JOIN) -->
+    <div id="keypadPanel" style="display:none">
+      <div class="kp-prompt">What room? Punch it in!</div>
+      <div class="digits" id="digits">
+        <span class="digit" id="digit0"></span>
+        <span class="digit" id="digit1"></span>
+      </div>
+      <div class="keypad" id="keypad"></div>
+      <div class="kp-note" id="kpNote"></div>
+      <button class="btn-link kp-back" onclick="hideKeypad()">← back</button>
+    </div>
+
+    <div class="landing-note" id="landingNote"></div>
   </div>
 
   <!-- LOBBY (gather + share code; any player can start) -->
   <div id="lobby" class="screen" style="display:none;">
-    <div class="roomcode-label">Room Code</div>
+    <div class="roomcode-label">Your Room Number</div>
     <div class="roomcode" id="roomCode">--</div>
-    <button class="btn-ghost" id="copyBtn" onclick="copyInvite(event)" style="margin-bottom:6px;">Copy Invite Link</button>
+    <div class="roomcode-hint">📣 Shout it out — friends tap JOIN and punch it in</div>
+    <button class="btn-ghost" id="copyBtn" onclick="copyInvite(event)" style="margin-bottom:6px;">Copy Invite Link 🔗</button>
+
     <div class="players" id="lobbyPlayers"></div>
-    <div class="setup-label">Questions this round</div>
-    <div class="stepper">
-      <button onclick="changeQPP(-1)">−</button>
-      <span class="value" id="qppVal">10</span>
-      <button onclick="changeQPP(1)">+</button>
+
+    <div class="id-mini">
+      <button class="id-chip" id="lobbyIdChip" onclick="toggleLobbyIdEditor()">👾 Rad Max <span class="edit-hint">✎ change</span></button>
     </div>
-    <button class="btn-primary" id="startBtn" onclick="startGame()">Start Game ▶</button>
+    <div class="id-editor" id="lobbyIdEditor" style="display:none">
+      <div class="id-row">
+        <button class="id-avatar" id="lobbyAvatarBtn" onclick="toggleLobbyAvatars()" aria-label="Change your face">👾</button>
+        <input class="field name-edit" id="lobbyNameInput" type="text" maxlength="13" style="margin-bottom:0" aria-label="Type your name">
+        <button class="id-dice" onclick="shuffleIdentity()" aria-label="Random new name">🎲</button>
+      </div>
+      <div class="avatar-grid" id="lobbyAvatarGrid" style="display:none"></div>
+      <button class="btn-ghost" onclick="closeLobbyIdEditor()" style="margin-top:10px;">Done ✓</button>
+    </div>
+
+    <div class="setup-label" style="margin-top:14px;">Questions this round</div>
+    <div class="stepper">
+      <button onclick="changeQPP(-1)" aria-label="Fewer questions">−</button>
+      <span class="value" id="qppVal">10</span>
+      <button onclick="changeQPP(1)" aria-label="More questions">+</button>
+    </div>
+    <button class="btn-primary btn-start" id="startBtn" onclick="startGame()">▶ Start Game</button>
     <div class="note" id="lobbyNote"></div>
     <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
@@ -259,7 +405,7 @@
     <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
-  <div class="version" id="version">v8</div>
+  <div class="version" id="version">v9</div>
 </div>
 
 <script type="module">
@@ -280,9 +426,106 @@ function ensureCid() {
 }
 const myCid = ensureCid();
 
+// ---- fun identity: avatar + 80s name, zero typing required ----
+// (Avatars are single-codepoint emoji so name+avatar stays short on the wire.)
+const AVATARS = ["👾","🤖","🚀","🛹","📼","🎸","🎧","🌈","⚡","🍕","🦄","🐱","🔥","💾","🐸","🍩","🌴","👽"];
+const NAMES = ["Rad Max","Neon Nikki","Turbo Ted","Laser Lou","Disco Dee","Pixel Pam","Synth Sam","Rocker Rex","Cosmic Kim","Boombox Bo","Mixtape Mo","Arcade Ace","Roller Roz","Vinyl Vic","Glitter Gus","Hot Rod Hal","Jazzy Jay","Big Kahuna"];
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+let myAvatar = LS.getItem("trivia.avatar") || "";
+let myName = (LS.getItem("trivia.name") || "").trim().slice(0, 13);
+if (!AVATARS.includes(myAvatar)) myAvatar = pick(AVATARS);
+if (!myName || myName === "Player") myName = pick(NAMES);
+
+function fullName() { return `${myAvatar} ${myName}`; }
+
+function refreshIdentityUI() {
+  $("avatarBtn").textContent = myAvatar;
+  $("nameBtn").textContent = myName;
+  $("lobbyAvatarBtn").textContent = myAvatar;
+  if (document.activeElement !== $("lobbyNameInput")) $("lobbyNameInput").value = myName;
+  $("lobbyIdChip").innerHTML = `${myAvatar} ${escapeHtml(myName)} <span class="edit-hint">✎ change</span>`;
+}
+
+function saveIdentity() {
+  LS.setItem("trivia.name", myName);
+  LS.setItem("trivia.avatar", myAvatar);
+  refreshIdentityUI();
+  // Already in a room? Tell everyone the new look right away.
+  try { if (socket && roomCode) socket.send(JSON.stringify({ type: "join", cid: myCid, name: fullName() })); } catch {}
+}
+
+function buildAvatarGrid(el) {
+  el.innerHTML = "";
+  AVATARS.forEach(a => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = a;
+    if (a === myAvatar) b.classList.add("sel");
+    b.setAttribute("aria-label", "Pick face " + a);
+    b.onclick = () => { myAvatar = a; saveIdentity(); el.style.display = "none"; };
+    el.appendChild(b);
+  });
+}
+
+window.toggleAvatars = () => {
+  const g = $("avatarGrid");
+  const opening = g.style.display === "none";
+  if (opening) buildAvatarGrid(g);
+  g.style.display = opening ? "grid" : "none";
+};
+window.toggleLobbyAvatars = () => {
+  const g = $("lobbyAvatarGrid");
+  const opening = g.style.display === "none";
+  if (opening) buildAvatarGrid(g);
+  g.style.display = opening ? "grid" : "none";
+};
+
+window.shuffleIdentity = () => {
+  let a = pick(AVATARS), n = pick(NAMES);
+  if (a === myAvatar) a = AVATARS[(AVATARS.indexOf(a) + 1) % AVATARS.length];
+  if (n === myName) n = NAMES[(NAMES.indexOf(n) + 1) % NAMES.length];
+  myAvatar = a; myName = n;
+  saveIdentity();
+  const d = $("diceBtn");
+  d.classList.remove("rolling"); void d.offsetWidth; d.classList.add("rolling");
+};
+
+window.editName = () => {
+  $("nameInput").value = myName;
+  $("nameInput").style.display = "block";
+  $("nameBtn").style.display = "none";
+  $("nameInput").focus();
+  $("nameInput").select();
+};
+function commitName(fromEl) {
+  const v = fromEl.value.trim().slice(0, 13);
+  if (v) { myName = v; saveIdentity(); }
+  else refreshIdentityUI();
+}
+$("nameInput").addEventListener("blur", () => {
+  commitName($("nameInput"));
+  $("nameInput").style.display = "none";
+  $("nameBtn").style.display = "";
+});
+$("nameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("nameInput").blur(); });
+$("lobbyNameInput").addEventListener("blur", () => commitName($("lobbyNameInput")));
+$("lobbyNameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("lobbyNameInput").blur(); });
+
+window.toggleLobbyIdEditor = () => {
+  const ed = $("lobbyIdEditor");
+  const opening = ed.style.display === "none";
+  ed.style.display = opening ? "block" : "none";
+  if (opening) $("lobbyNameInput").value = myName;
+};
+window.closeLobbyIdEditor = () => {
+  commitName($("lobbyNameInput"));
+  $("lobbyIdEditor").style.display = "none";
+  $("lobbyAvatarGrid").style.display = "none";
+};
+
 let socket = null;
 let myId = null;         // === myCid once joined; used for "me" highlighting
-let myName = LS.getItem("trivia.name") || "Player";
 let myChoice = null;     // my pick for the current question (local echo)
 let lastIndex = -1;
 let lastSig = "";        // signature of MY question view; skip rebuild when unchanged
@@ -306,12 +549,13 @@ function connect(code) {
   roomCode = String(code);
   myChoice = null; lastIndex = -1; lastSig = ""; state = null;
   LS.setItem("trivia.room", roomCode);
-  LS.setItem("trivia.name", myName);
+  $("roomCode").textContent = roomCode;  // paint instantly; render() confirms on first state
+  saveIdentity();
   if (socket) { try { socket.close(); } catch {} }
   socket = new PartySocket({ host: location.host, room: roomCode });
   socket.addEventListener("open", () => {
     setConn("online");
-    socket.send(JSON.stringify({ type: "join", cid: myCid, name: myName }));
+    socket.send(JSON.stringify({ type: "join", cid: myCid, name: fullName() }));
   });
   socket.addEventListener("close", () => setConn("offline"));
   socket.addEventListener("error", () => setConn("offline"));
@@ -323,32 +567,99 @@ function connect(code) {
 }
 
 // ---- landing actions ----
-function readName() {
-  const n = $("nameInput").value.trim().slice(0, 16) || myName || "Player";
-  myName = n;
-  LS.setItem("trivia.name", myName);
-  return n;
-}
-
 window.newGame = () => {
-  readName();
   connect(randomCode());
   showScreen("lobby");
 };
 
-window.joinGame = () => {
-  const code = $("codeInput").value.trim();
-  if (!/^\d{2}$/.test(code)) { alert("Enter the 2-digit room code (like 44)."); return; }
-  readName();
-  connect(code);
-  showScreen("lobby");
+// ---- arcade keypad: hear "room 44", punch 4-4, you're in ----
+let kp = "";
+let kpJoining = false;
+
+function buildKeypad() {
+  const el = $("keypad");
+  el.innerHTML = "";
+  ["1","2","3","4","5","6","7","8","9","del","0","ghost"].forEach(k => {
+    const b = document.createElement("button");
+    b.type = "button";
+    if (k === "ghost") { b.className = "key ghost"; b.disabled = true; b.innerHTML = "&nbsp;"; }
+    else if (k === "del") { b.className = "key aux"; b.textContent = "⌫"; b.setAttribute("aria-label", "Delete digit"); b.onclick = kpDel; }
+    else { b.className = "key"; b.textContent = k; b.setAttribute("aria-label", "Digit " + k); b.onclick = () => kpPress(k); }
+    el.appendChild(b);
+  });
+}
+
+function kpRender() {
+  ["digit0", "digit1"].forEach((id, i) => {
+    const el = $(id);
+    el.textContent = kp[i] || "";
+    el.classList.toggle("active", !kpJoining && kp.length === i);
+    el.classList.toggle("locked", kpJoining);
+  });
+}
+
+function kpPress(d) {
+  if (kpJoining || kp.length >= 2) return;
+  if (kp.length === 0 && d === "0") {  // room codes are 10–99; a leading 0 can't be right
+    const dg = $("digits");
+    dg.classList.remove("shake"); void dg.offsetWidth; dg.classList.add("shake");
+    $("kpNote").textContent = "Codes start with 1–9!";
+    return;
+  }
+  kp += d;
+  kpRender();
+  if (kp.length === 2) {
+    kpJoining = true;
+    kpRender();
+    $("kpNote").textContent = `🕹 Joining room ${kp}…`;
+    const code = kp;
+    setTimeout(() => {
+      kp = ""; kpJoining = false;
+      connect(code);
+      showScreen("lobby");
+      hideKeypad();
+    }, 400);
+  } else {
+    $("kpNote").textContent = "One more digit…";
+  }
+}
+
+function kpDel() {
+  if (kpJoining) return;
+  kp = kp.slice(0, -1);
+  $("kpNote").textContent = "";
+  kpRender();
+}
+
+window.showKeypad = () => {
+  kp = ""; kpJoining = false;
+  $("kpNote").textContent = "";
+  $("choiceCards").style.display = "none";
+  $("keypadPanel").style.display = "block";
+  kpRender();
 };
+window.hideKeypad = () => {
+  kp = ""; kpJoining = false;
+  $("keypadPanel").style.display = "none";
+  $("choiceCards").style.display = "grid";
+};
+
+// Desktop / hardware keyboard works on the keypad too.
+document.addEventListener("keydown", (e) => {
+  if ($("keypadPanel").style.display === "none") return;
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  if (/^[0-9]$/.test(e.key)) kpPress(e.key);
+  else if (e.key === "Backspace") kpDel();
+  else if (e.key === "Escape") window.hideKeypad();
+});
 
 window.leaveRoom = () => {
   socket?.send(JSON.stringify({ type: "leave" }));
   try { socket?.close(); } catch {}
   socket = null; state = null; roomCode = ""; currentScreen = null;
   LS.removeItem("trivia.room");
+  window.hideKeypad();
+  $("landingNote").textContent = "";
   showScreen("landing");
 };
 
@@ -444,8 +755,8 @@ function renderLobby() {
   $("lobbyPlayers").innerHTML = state.players.map(lobbyRow).join("");
   const others = state.players.filter(p => p.online).length;
   $("lobbyNote").textContent = others < 2
-    ? "Share the code — or just hit Start to play. Friends can join any time."
-    : `${others} players in. Hit Start when you're ready — late-comers can still join.`;
+    ? "Anyone can press Start — friends can join any time."
+    : `${others} players in. Anyone can press Start — late-comers can still join.`;
 }
 
 function renderQuestionArea() {
@@ -533,7 +844,7 @@ function renderOver() {
   const me = sorted.find(p => p.id === myId);
 
   $("overTitle").textContent = allDone
-    ? (sorted.filter(p => p.score === top).length > 1 ? "Final Results — Tie!" : `${escapeHtml(sorted[0].name)} Wins!`)
+    ? (sorted.filter(p => p.score === top).length > 1 ? "Final Results — Tie!" : `${sorted[0].name} Wins!`)
     : "You're Done!";
 
   $("leaderboard").innerHTML = sorted.map((p, rank) => {
@@ -552,15 +863,17 @@ function renderOver() {
 }
 
 // ---- boot ----
-// Prefill name and any ?room= invite code.
-if (myName && myName !== "Player") $("nameInput").value = myName;
+refreshIdentityUI();
+buildKeypad();
+LS.setItem("trivia.name", myName);
+LS.setItem("trivia.avatar", myAvatar);
+
+// Auto-rejoin: invite link (?room=NN) or the room we were already in.
 const params = new URLSearchParams(location.search);
 const urlRoom = params.get("room");
-if (urlRoom && /^\d{2}$/.test(urlRoom)) $("codeInput").value = urlRoom;
-
-// Auto-rejoin: if we were in a room, reconnect and resume right where we left off.
 const savedRoom = urlRoom && /^\d{2}$/.test(urlRoom) ? urlRoom : LS.getItem("trivia.room");
 if (savedRoom && /^\d{2}$/.test(savedRoom)) {
+  $("landingNote").textContent = `🕹 Joining room ${savedRoom}…`;
   connect(savedRoom);
   // render() will move us to the right screen once the first state arrives.
 }

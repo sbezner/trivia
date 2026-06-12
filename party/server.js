@@ -82,7 +82,8 @@ export default class Server {
         p = this.newPlayer(cid);
         this.players.set(cid, p);
       }
-      p.name = String(msg.name || "").trim().slice(0, 16) || p.name || "Player";
+      // 24 UTF-16 units: room for an emoji avatar prefix (2 units) + a 13-char name.
+      p.name = String(msg.name || "").trim().slice(0, 24) || p.name || "Player";
       p.online = true;
       this.conns.set(sender.id, cid);
       this.sync();
