@@ -51,10 +51,10 @@
     color: var(--text);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;   /* app-like: content starts under the bar, not floating mid-screen */
     justify-content: center;
     /* top padding clears the fixed top bar */
-    padding: calc(86px + env(safe-area-inset-top, 0px)) 16px 36px;
+    padding: calc(78px + env(safe-area-inset-top, 0px)) 16px 36px;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
@@ -62,25 +62,9 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
+  /* edge-to-edge content container — the SECTIONS are the cards, not the page */
   .game {
-    position: relative; z-index: 1; width: 100%; max-width: 640px;
-    background: var(--surface);
-    border: 1px solid var(--border); border-radius: var(--r-lg);
-    box-shadow: var(--shadow-2);
-    padding: 28px;
-  }
-  @media (max-width: 480px) { .game { padding: 22px 16px; } }
-  h1 {
-    text-align: center; font-size: clamp(1.7rem, 6vw, 2.3rem); line-height: 1.1;
-    font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;
-    color: var(--brand-text); /* fallback if gradient text unsupported */
-    background: linear-gradient(92deg, #A89BFF 20%, var(--accent));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .subtitle {
-    text-align: center; color: var(--text-3); font-size: 0.85rem; font-weight: 600;
-    letter-spacing: 0.3px; margin-bottom: 22px;
+    position: relative; z-index: 1; width: 100%; max-width: 560px;
   }
   .screen { animation: fadeIn 0.3s var(--ease); }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -122,15 +106,16 @@
   input.field::placeholder { color: var(--text-3); }
 
   /* shared "eyebrow" label — small caps-style section headers */
-  .id-label, .cg-label, .roomcode-label, .setup-label {
+  .id-label, .cg-label, .roomcode-label {
     text-align: center; text-transform: uppercase; letter-spacing: 2px;
     font-size: 0.7rem; font-weight: 700; color: var(--text-3);
   }
 
   /* ===================== IDENTITY CARD (who are you) ===================== */
   .id-card {
-    background: var(--bg-soft); border: 1px solid var(--border);
-    border-radius: var(--r-lg); padding: 16px 14px; margin-bottom: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 16px 14px; margin-bottom: 16px;
+    box-shadow: var(--shadow-1);
   }
   .id-label { margin-bottom: 10px; }
   .id-row { display: flex; gap: 10px; justify-content: center; align-items: stretch; }
@@ -225,22 +210,27 @@
      rose "reconnecting…" pill when not. */
   .topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    display: flex; align-items: center; gap: 10px;
-    padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+    display: flex; align-items: center; gap: 12px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
     background: rgba(15, 17, 23, 0.86);
     -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
   }
+  .brand {
+    flex-shrink: 0; font-size: 1.02rem; font-weight: 800; letter-spacing: -0.3px;
+    color: var(--text); white-space: nowrap;
+  }
+  .brand em { font-style: normal; color: var(--brand-text); }
   .tabs {
     flex: 1; display: flex; gap: 4px; padding: 4px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    max-width: 320px; margin-left: auto;
   }
   .tab {
-    flex: 1; min-height: 48px; border-radius: 12px; background: transparent;
-    color: var(--text-2); font-size: 1.02rem; font-weight: 700;
+    flex: 1; min-height: 44px; border-radius: 10px; background: transparent;
+    color: var(--text-2); font-size: 0.95rem; font-weight: 700;
     display: flex; align-items: center; justify-content: center; gap: 8px; position: relative;
   }
-  .tab .t-ico { font-size: 1.3rem; line-height: 1; }
   .tab:hover { color: var(--text); background: var(--surface-2); }
   .tab.on, .tab.on:hover { background: var(--brand); color: #fff; box-shadow: 0 2px 10px rgba(108, 92, 231, 0.45); }
   .tab-dot {
@@ -264,8 +254,8 @@
 
   /* ===================== CURRENT GAME CARD (CONTROLS tab while in a room) ===================== */
   .cg-card {
-    background: var(--bg-soft); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: 18px 16px; text-align: center; margin-bottom: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: 18px 16px; text-align: center; margin-bottom: 14px; box-shadow: var(--shadow-1);
   }
   .cg-label { margin-bottom: 6px; }
   .cg-room { font-size: 0.82rem; font-weight: 700; letter-spacing: 2px; color: var(--text-3); margin-bottom: 12px; }
@@ -287,9 +277,20 @@
   .quit-sub { color: var(--text-2); font-size: 0.88rem; font-weight: 400; display: block; margin-top: 4px; }
   .cg-hint { text-align: center; color: var(--text-3); font-size: 0.8rem; margin-top: 12px; }
 
-  .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 0.85rem; font-weight: 700; }
-  .hud .qcount { color: var(--text-2); font-variant-numeric: tabular-nums; }
-  .hud .answered { color: var(--accent); }
+  /* slim question-progress bar — glanceable "how far along am I" */
+  .qbar { margin-bottom: 16px; }
+  .qbar-track { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .qbar-fill {
+    height: 100%; width: 0; border-radius: 3px;
+    background: linear-gradient(90deg, var(--brand-strong), var(--brand));
+    transition: width 0.5s var(--ease);
+  }
+  .qbar-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 7px; font-size: 0.82rem; font-weight: 700;
+  }
+  .qbar-meta #qcount { color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .qbar-meta .answered { color: var(--accent); }
 
   .category-tag {
     display: inline-block; background: var(--brand-soft); color: var(--brand-text);
@@ -328,16 +329,27 @@
   .note { text-align: center; margin-top: 18px; min-height: 22px; font-size: 0.95rem; font-weight: 600; color: var(--text-2); }
 
   /* ===================== LOBBY ===================== */
+  .code-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: 18px 16px 16px; text-align: center; box-shadow: var(--shadow-1); margin-bottom: 20px;
+  }
   .roomcode-label { margin-bottom: 2px; }
   .roomcode {
-    text-align: center; font-size: clamp(4.5rem, 24vw, 7rem); line-height: 1.1; font-weight: 800;
-    letter-spacing: 14px; padding-left: 14px; font-variant-numeric: tabular-nums;
-    color: var(--accent); /* fallback if gradient text unsupported */
-    background: linear-gradient(95deg, #A89BFF, var(--accent));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    text-align: center; font-size: clamp(4rem, 22vw, 6rem); line-height: 1.1; font-weight: 800;
+    letter-spacing: 10px; padding-left: 10px; font-variant-numeric: tabular-nums;
+    color: var(--accent);
   }
   .roomcode-hint { text-align: center; color: var(--text-2); font-size: 0.85rem; margin-bottom: 14px; }
+  .sect-label {
+    text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.7rem; font-weight: 700;
+    color: var(--text-3); margin: 0 2px 8px;
+  }
+  .setup-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: 10px 10px 10px 16px; margin-top: 16px;
+  }
+  .setup-row-label { font-size: 0.95rem; font-weight: 600; color: var(--text-2); }
 
   .players { display: grid; gap: 8px; margin: 18px 0; }
   .player-row {
@@ -354,29 +366,13 @@
   }
   .badge.away { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border-strong); }
 
-  .id-mini { text-align: center; margin-bottom: 4px; }
-  .id-chip {
-    background: var(--surface-2); border: 1.5px dashed var(--border-strong); color: var(--text);
-    border-radius: var(--r-md); padding: 10px 16px; font-size: 1rem; font-weight: 600; min-height: 48px;
-  }
-  .id-chip:hover { border-color: var(--brand); }
-  .id-chip .edit-hint {
-    color: var(--text-3); font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.5px; margin-left: 8px;
-  }
-  .id-editor {
-    margin: 10px 0 4px; padding: 12px; border: 1px solid var(--border);
-    border-radius: var(--r-lg); background: var(--bg-soft);
-  }
-
-  .stepper { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 10px 0 4px; }
+  .stepper { display: flex; align-items: center; gap: 10px; }
   .stepper button {
-    width: 56px; height: 56px; border-radius: var(--r-md); background: var(--surface-2);
-    border: 1px solid var(--border-strong); color: var(--text); font-size: 1.7rem; font-weight: 700;
+    width: 48px; height: 48px; border-radius: var(--r-sm); background: var(--surface-2);
+    border: 1px solid var(--border-strong); color: var(--text); font-size: 1.5rem; font-weight: 700;
   }
   .stepper button:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
-  .stepper .value { font-size: 2rem; font-weight: 800; color: var(--text); min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; }
-  .setup-label { display: block; }
+  .stepper .value { font-size: 1.5rem; font-weight: 800; color: var(--text); min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
 
   .leaderboard { display: grid; gap: 10px; margin-bottom: 20px; }
   .lb-row {
@@ -460,24 +456,24 @@
     padding: 2px 9px; border-radius: 999px; margin-top: 5px;
   }
 
-  /* ===================== PODIUM (game-over bragging rights) ===================== */
-  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 6px 0 20px; }
-  .pod { flex: 1; max-width: 160px; min-width: 0; text-align: center; }
-  .pod .p-crown { font-size: 1.7rem; animation: crownBob 1.6s ease-in-out infinite; }
-  @keyframes crownBob { 50% { transform: translateY(-6px); } }
-  .pod .p-av { font-size: 2.3rem; line-height: 1.2; }
-  .pod.gold .p-av { font-size: 3rem; }
-  .pod .p-name { font-size: 0.92rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-  .pod .p-pts { color: var(--accent); font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-  .pod .p-block {
-    margin-top: 7px; border-radius: var(--r-sm) var(--r-sm) 0 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.7rem; border: 1px solid; border-bottom: none;
+  /* ===================== WINNER HERO (game-over bragging rights) ===================== */
+  .champ {
+    text-align: center; background: linear-gradient(180deg, var(--accent-soft), var(--surface) 70%);
+    border: 1px solid var(--accent); border-radius: var(--r-lg);
+    padding: 20px 16px 18px; box-shadow: var(--shadow-1); margin-bottom: 16px;
   }
-  .pod.gold .p-block { height: 88px; border-color: var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent); }
-  .pod.silver .p-block { height: 60px; border-color: var(--border-strong); background: linear-gradient(180deg, var(--surface-2), transparent); }
-  .pod.bronze .p-block { height: 42px; border-color: #C98A5B; background: linear-gradient(180deg, rgba(201, 138, 91, 0.18), transparent); }
-  .pod.me .p-name { color: var(--brand-text); }
+  .champ .c-crown { font-size: 1.9rem; animation: crownBob 1.6s ease-in-out infinite; }
+  @keyframes crownBob { 50% { transform: translateY(-5px); } }
+  .champ .c-av {
+    width: 84px; height: 84px; margin: 6px auto 8px; font-size: 2.9rem;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); border: 2px solid var(--accent); border-radius: 50%;
+  }
+  .champ .c-name { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; }
+  .champ .c-pts { color: var(--accent); font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .champ .c-chips { margin-top: 8px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .champ .c-chips .wins-chip, .champ .c-chips .sup { margin: 0; }
+  .lb-row .medal { width: 30px; display: inline-block; font-size: 1.15rem; }
 
   .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
   .confetti i { position: absolute; top: -6vh; width: 9px; height: 14px; border-radius: 2px; opacity: 0.9;
@@ -488,20 +484,19 @@
 <body>
 <!-- the always-there map: two places, pinned where eyes go first -->
 <header class="topbar">
+  <div class="brand"><em>80's</em> Trivia</div>
   <nav class="tabs" aria-label="Game and controls tabs">
     <button class="tab" id="tabGameBtn" onclick="setTab('game')" aria-pressed="false">
-      <span class="t-ico">🎮</span> Game <span class="tab-dot" id="gameDot"></span>
+      Game <span class="tab-dot" id="gameDot"></span>
     </button>
     <button class="tab" id="tabControlsBtn" onclick="setTab('controls')" aria-pressed="false">
-      <span class="t-ico">⚙️</span> Controls
+      Controls
     </button>
   </nav>
   <div class="conn" id="conn" title="Connection" aria-live="polite">●</div>
 </header>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div class="game">
-  <h1>80's Trivia</h1>
-  <div class="subtitle">Online · play at your own pace</div>
 
   <!-- ╔══════════════ 🎮 GAME TAB — the play surface, nothing else ══════════════╗ -->
   <div id="tabGamePanel">
@@ -512,7 +507,7 @@
       <div class="ng-tv">📺</div>
       <p class="lead ng-big">No game on yet!</p>
       <p class="lead">Hop over to CONTROLS to start a<br>new game or join your friends.</p>
-      <button class="btn-primary btn-start" onclick="setTab('controls')">⚙️ Go to Controls</button>
+      <button class="btn-primary btn-start" onclick="setTab('controls')">Go to Controls</button>
     </div>
     <div id="noGameJoining" style="display:none;">
       <div class="ng-tv">🕹</div>
@@ -523,41 +518,33 @@
 
   <!-- LOBBY (gather + share code; any player can start) -->
   <div id="lobby" class="screen" style="display:none;">
-    <div class="roomcode-label">Your Room Number</div>
-    <div class="roomcode" id="roomCode">--</div>
-    <div class="roomcode-hint">📣 Shout it out — friends tap JOIN and punch it in</div>
-    <button class="btn-ghost" id="copyBtn" onclick="copyInvite(event)" style="margin-bottom:6px;">Copy Invite Link 🔗</button>
+    <div class="code-card">
+      <div class="roomcode-label">Room code</div>
+      <div class="roomcode" id="roomCode">--</div>
+      <div class="roomcode-hint">Shout it out — friends tap Join and punch it in</div>
+      <button class="btn-ghost" id="copyBtn" onclick="copyInvite(event)">Copy invite link</button>
+    </div>
 
+    <div class="sect-label">Who's in</div>
     <div class="players" id="lobbyPlayers"></div>
 
-    <div class="id-mini">
-      <button class="id-chip" id="lobbyIdChip" onclick="toggleLobbyIdEditor()">👾 Rad Max <span class="edit-hint">✎ change</span></button>
+    <div class="setup-row">
+      <span class="setup-row-label">Questions this round</span>
+      <span class="stepper">
+        <button onclick="changeQPP(-1)" aria-label="Fewer questions">−</button>
+        <span class="value" id="qppVal">10</span>
+        <button onclick="changeQPP(1)" aria-label="More questions">+</button>
+      </span>
     </div>
-    <div class="id-editor" id="lobbyIdEditor" style="display:none">
-      <div class="id-row">
-        <button class="id-avatar" id="lobbyAvatarBtn" onclick="toggleLobbyAvatars()" aria-label="Change your face">👾</button>
-        <input class="field name-edit" id="lobbyNameInput" type="text" maxlength="13" style="margin-bottom:0" aria-label="Type your name">
-        <button class="id-dice" onclick="shuffleIdentity()" aria-label="Random new name">🎲</button>
-      </div>
-      <div class="avatar-grid" id="lobbyAvatarGrid" style="display:none"></div>
-      <button class="btn-ghost" onclick="closeLobbyIdEditor()" style="margin-top:10px;">Done ✓</button>
-    </div>
-
-    <div class="setup-label" style="margin-top:14px;">Questions this round</div>
-    <div class="stepper">
-      <button onclick="changeQPP(-1)" aria-label="Fewer questions">−</button>
-      <span class="value" id="qppVal">10</span>
-      <button onclick="changeQPP(1)" aria-label="More questions">+</button>
-    </div>
-    <button class="btn-primary btn-start" id="startBtn" onclick="startGame()">▶ Start Game</button>
+    <button class="btn-primary btn-start" id="startBtn" onclick="startGame()">Start Game</button>
     <div class="note" id="lobbyNote"></div>
   </div>
 
   <!-- GAME (question + reveal) -->
   <div id="game" class="screen" style="display:none;">
-    <div class="hud">
-      <span class="qcount" id="qcount">Q 1 / 10</span>
-      <span class="answered" id="answeredCount"></span>
+    <div class="qbar">
+      <div class="qbar-track"><div class="qbar-fill" id="qbarFill"></div></div>
+      <div class="qbar-meta"><span id="qcount">1 of 10</span><span class="answered" id="answeredCount"></span></div>
     </div>
     <span class="category-tag" id="catTag">Movies</span>
     <div class="question" id="questionText"></div>
@@ -565,7 +552,10 @@
     <div id="resultBanner"></div>
     <div class="note" id="gameNote"></div>
     <div id="gameNextControls"></div>
-    <div class="race" id="gamePlayers" style="margin-top:20px;"></div>
+    <div id="standings" style="margin-top:24px;">
+      <div class="sect-label">Live standings</div>
+      <div class="race" id="gamePlayers"></div>
+    </div>
   </div>
 
   <!-- GAME OVER -->
@@ -574,7 +564,7 @@
     <div id="overPodium"></div>
     <div class="leaderboard" id="overList"></div>
     <div class="race" id="overRace" style="display:none; margin-bottom:20px;"></div>
-    <button class="btn-primary btn-start" onclick="newGameAgain()">New Game ↻</button>
+    <button class="btn-primary btn-start" onclick="newGameAgain()">New Game</button>
     <div class="note" id="overNote"></div>
   </div>
 
@@ -603,15 +593,15 @@
       <div class="cg-card">
         <div class="cg-label">Your current game</div>
         <div class="cg-room">ROOM<span class="cg-code" id="cgCode">--</span></div>
-        <button class="btn-ghost" onclick="copyInvite(event)">Copy Invite Link 🔗</button>
-        <button class="btn-primary" onclick="setTab('game')" style="margin-top:10px;">🎮 Back to the Game</button>
+        <button class="btn-ghost" onclick="copyInvite(event)">Copy invite link</button>
+        <button class="btn-primary" onclick="setTab('game')" style="margin-top:10px;">Back to the game</button>
       </div>
-      <button class="btn-quit" id="quitBtn" onclick="askQuit()">🚪 Quit This Game</button>
+      <button class="btn-quit" id="quitBtn" onclick="askQuit()">Quit this game</button>
       <div class="quit-confirm" id="quitConfirm" style="display:none;">
         <div class="quit-q">Quit room <span id="quitCode">--</span>?
           <span class="quit-sub">Your spot and score in this game go away.</span></div>
-        <button class="btn-primary" onclick="confirmQuit()">🚪 Yes, Quit</button>
-        <button class="btn-ghost" onclick="cancelQuit()">↩ No, Keep Playing</button>
+        <button class="btn-primary" onclick="confirmQuit()">Yes, quit</button>
+        <button class="btn-ghost" onclick="cancelQuit()">No, keep playing</button>
       </div>
       <div class="cg-hint">To start or join a different game, quit this one first.</div>
     </div>
@@ -683,9 +673,6 @@ function fullName() { return `${myAvatar} ${myName}`; }
 function refreshIdentityUI() {
   $("avatarBtn").textContent = myAvatar;
   $("nameBtn").textContent = myName;
-  $("lobbyAvatarBtn").textContent = myAvatar;
-  if (document.activeElement !== $("lobbyNameInput")) $("lobbyNameInput").value = myName;
-  $("lobbyIdChip").innerHTML = `${myAvatar} ${escapeHtml(myName)} <span class="edit-hint">✎ change</span>`;
 }
 
 function saveIdentity() {
@@ -711,12 +698,6 @@ function buildAvatarGrid(el) {
 
 window.toggleAvatars = () => {
   const g = $("avatarGrid");
-  const opening = g.style.display === "none";
-  if (opening) buildAvatarGrid(g);
-  g.style.display = opening ? "grid" : "none";
-};
-window.toggleLobbyAvatars = () => {
-  const g = $("lobbyAvatarGrid");
   const opening = g.style.display === "none";
   if (opening) buildAvatarGrid(g);
   g.style.display = opening ? "grid" : "none";
@@ -750,20 +731,6 @@ $("nameInput").addEventListener("blur", () => {
   $("nameBtn").style.display = "";
 });
 $("nameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("nameInput").blur(); });
-$("lobbyNameInput").addEventListener("blur", () => commitName($("lobbyNameInput")));
-$("lobbyNameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("lobbyNameInput").blur(); });
-
-window.toggleLobbyIdEditor = () => {
-  const ed = $("lobbyIdEditor");
-  const opening = ed.style.display === "none";
-  ed.style.display = opening ? "block" : "none";
-  if (opening) $("lobbyNameInput").value = myName;
-};
-window.closeLobbyIdEditor = () => {
-  commitName($("lobbyNameInput"));
-  $("lobbyIdEditor").style.display = "none";
-  $("lobbyAvatarGrid").style.display = "none";
-};
 
 let socket = null;
 let myId = null;         // === myCid once joined; used for "me" highlighting
@@ -1063,6 +1030,7 @@ function render() {
   const sig = `${state.myIndex}|${state.answered}|${myChoice}|${state.question ? state.question.q : ""}`;
   if (sig !== lastSig) { lastSig = sig; renderQuestionArea(); }
   else if (state.answered) updateTallyBars(); // live % updates while I sit on the reveal
+  $("standings").style.display = state.players.length > 1 ? "block" : "none"; // solo race = noise
   renderRace($("gamePlayers"));
 }
 
@@ -1095,7 +1063,8 @@ function renderLobby() {
 
 function renderQuestionArea() {
   const reveal = state.answered;
-  $("qcount").textContent = `Q ${state.myIndex + 1} / ${state.total}`;
+  $("qcount").textContent = `Question ${state.myIndex + 1} of ${state.total}`;
+  $("qbarFill").style.width = (state.total ? ((state.myIndex + (reveal ? 1 : 0)) / state.total) * 100 : 0) + "%";
   const doneCount = state.players.filter(p => p.done).length;
   $("answeredCount").textContent = doneCount ? `${doneCount}/${state.players.length} finished` : "";
   $("catTag").textContent = state.question.cat;
@@ -1149,13 +1118,14 @@ function renderQuestionArea() {
   } else {
     rb.className = "";
     rb.innerHTML = "";
-    $("gameNote").textContent = myChoice !== null ? "✓ Locked in…" : "Pick your answer!";
+    // The answers ARE the affordance — no "pick one!" noise; only show waiting state.
+    $("gameNote").textContent = myChoice !== null ? "Locked in — waiting for the reveal…" : "";
   }
 
   const ctrl = $("gameNextControls");
   if (reveal) {
     const last = state.myIndex + 1 >= state.total;
-    ctrl.innerHTML = `<button class="btn-primary btn-start" onclick="myNext()">${last ? "🏁 Finish" : "Next ▶"}</button>`;
+    ctrl.innerHTML = `<button class="btn-primary btn-start" onclick="myNext()">${last ? "Finish" : "Next"}</button>`;
   } else {
     ctrl.innerHTML = "";
   }
@@ -1269,17 +1239,24 @@ function supBadges(p) {
   return out;
 }
 
-function podSlot(p, cls) {
-  const medal = ["🥇", "🥈", "🥉"][p.rank] || "";
+function champCard(p) {
   const { av, label } = splitName(p.name);
-  return `<div class="pod ${cls} ${p.id === myId ? "me" : ""}">
-            ${cls === "gold" ? '<div class="p-crown">👑</div>' : ""}
-            <div class="p-av">${av}</div>
-            <div class="p-name">${escapeHtml(label)}${p.id === myId ? " (you)" : ""}</div>
-            <div class="p-pts">${p.score} pts</div>
-            ${p.wins ? `<div><span class="wins-chip">🏆×${p.wins}</span></div>` : ""}
-            ${supBadges(p)}
-            <div class="p-block">${medal}</div>
+  const chips = (p.wins ? `<span class="wins-chip">🏆×${p.wins}</span>` : "") + supBadges(p);
+  return `<div class="champ">
+            <div class="c-crown">👑</div>
+            <div class="c-av">${av}</div>
+            <div class="c-name">${escapeHtml(label)}${p.id === myId ? " (you)" : ""}</div>
+            <div class="c-pts">${p.score} pts</div>
+            ${chips ? `<div class="c-chips">${chips}</div>` : ""}
+          </div>`;
+}
+
+function rankedRow(p) {
+  const medal = ["🥇", "🥈", "🥉"][p.rank] || `<span style="color:var(--text-3)">${p.rank + 1}.</span>`;
+  const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
+  return `<div class="lb-row ${p.id === myId ? "me" : ""}">
+            <span><span class="medal">${medal}</span>${escapeHtml(p.name)}${you}${winsChip(p)}</span>
+            <span class="lb-pts">${p.score} pts</span>
           </div>`;
 }
 
@@ -1290,7 +1267,7 @@ function renderOver() {
 
   if (!allDone) {
     // I'm done; others are still racing. Give me the live race to heckle from the couch.
-    $("overTitle").textContent = "🏁 You Finished!";
+    $("overTitle").textContent = "You finished!";
     $("overPodium").innerHTML = "";
     $("overList").innerHTML = "";
     $("overRace").style.display = "grid";
@@ -1307,23 +1284,21 @@ function renderOver() {
     return { ...p, rank };
   });
   const winners = ranked.filter(r => r.rank === 0);
-  $("overTitle").textContent = winners.length > 1 ? "🤝 It's a Tie!" : `${winners[0].name} Wins!`;
 
-  // Podium: 2nd · 1st · 3rd, like a real awards stand.
-  const podCls = ["gold", "silver", "bronze"];
-  const podPs = ranked.slice(0, 3).map((p, i) => ({ p, cls: podCls[i] }));
-  const order = [podPs[1], podPs[0], podPs[2]].filter(Boolean);
-  $("overPodium").innerHTML = `<div class="podium">${order.map(s => podSlot(s.p, s.cls)).join("")}</div>`;
+  if (winners.length === 1) {
+    // One champion: hero card up top, everyone else as medal rows.
+    // (Just the name — the hero card right below already shows the face.)
+    $("overTitle").textContent = `${splitName(winners[0].name).label} wins!`;
+    $("overPodium").innerHTML = champCard(winners[0]);
+    $("overList").innerHTML = ranked.slice(1).map(rankedRow).join("");
+  } else {
+    // Tie: no single hero — everyone shares the medal row treatment.
+    $("overTitle").textContent = "It's a tie!";
+    $("overPodium").innerHTML = "";
+    $("overList").innerHTML = ranked.map(rankedRow).join("");
+  }
 
-  $("overList").innerHTML = ranked.slice(3).map(p => {
-    const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-    return `<div class="lb-row ${p.id === myId ? "me" : ""}">
-              <span>${p.rank + 1}. ${escapeHtml(p.name)}${you}${winsChip(p)}</span>
-              <span class="lb-pts">${p.score} pts</span>
-            </div>`;
-  }).join("");
-
-  $("overNote").textContent = "🏆 = round wins this session. Same crew, fresh questions — hit New Game for the rematch!";
+  $("overNote").textContent = "🏆 = wins this session. Same crew, fresh questions — hit New Game for the rematch!";
   if (!confettiDone) { confettiDone = true; dropConfetti(); }
 }
 
