@@ -11,41 +11,58 @@ function shuffle(arr) {
 }
 
 const POINTS = 100;
+const DEFAULT_N = 10;
+const MIN_N = 3, MAX_N = 20;
 
 /**
  * One Server instance == one game room (a Cloudflare Durable Object).
  *
- * SELF-PACED model: everyone answers the SAME shared deck, but each player
- * advances through it at their own pace. Answering a question reveals it just
- * for that player; pressing Next only advances that player. No host or other
- * player can move anyone else along. Scores are shared and update live.
+ * NO HOST. Anyone in the room can start a new game; everyone then answers the
+ * SAME shared deck, each advancing at their own pace. Answering reveals a
+ * question just for that player; Next advances only that player. Scores are
+ * shared and update live.
+ *
+ * IDENTITY IS STABLE. Players are keyed by a client-generated id (`cid`) kept
+ * in the browser's localStorage — NOT by the websocket connection id. So a
+ * refresh, a dropped phone, or an accidental tab-close reconnects as the SAME
+ * player and resumes exactly where they left off (same question, same score).
+ * Disconnecting never deletes a player; it only marks them offline.
  */
 export default class Server {
   constructor(room) {
     this.room = room;
-    this.players = new Map();   // id -> player
-    this.hostId = null;
+    this.players = new Map();   // cid -> player (survives disconnects)
+    this.conns = new Map();     // connId -> cid (live websocket routing)
     this.phase = "lobby";       // lobby | playing
     this.deck = [];             // shared questions for the round
     this.tallies = [];          // per question index: [n,n,n,n] of picks across all players
-    this.qN = 5;                // remembered question count, so New Game re-deals the same size
+    this.qN = DEFAULT_N;        // remembered question count for the next New Game
   }
 
-  newPlayer(id) {
-    return { id, name: "", score: 0, pindex: 0, answered: false, choice: null, correct: false, done: false };
+  newPlayer(cid) {
+    return {
+      id: cid, name: "", score: 0, pindex: 0,
+      answered: false, choice: null, correct: false, done: false,
+      online: true,
+    };
   }
 
   onConnect(conn) {
-    if (!this.hostId) this.hostId = conn.id;          // first in is the host
-    this.players.set(conn.id, this.newPlayer(conn.id));
-    conn.send(JSON.stringify({ type: "welcome", id: conn.id }));
-    this.sync();
+    // We don't know who this is until the client sends its stable id in "join".
+    conn.send(JSON.stringify({ type: "welcome" }));
+    // Send current state immediately so late/refreshing clients paint without delay.
+    conn.send(JSON.stringify(this.stateFor(null)));
   }
 
   onClose(conn) {
-    this.players.delete(conn.id);
-    if (conn.id === this.hostId) {
-      this.hostId = this.players.size ? [...this.players.keys()][0] : null;
+    const cid = this.conns.get(conn.id);
+    this.conns.delete(conn.id);
+    if (cid) {
+      // Keep the player's progress so a refresh/rejoin resumes. Only flag them
+      // offline if they have no other live connection open.
+      const stillConnected = [...this.conns.values()].includes(cid);
+      const p = this.players.get(cid);
+      if (p && !stillConnected) p.online = false;
     }
     this.sync();
   }
@@ -53,38 +70,50 @@ export default class Server {
   onMessage(raw, sender) {
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
-    const p = this.players.get(sender.id);
+
+    // "join" carries the stable client id and (re)binds this connection to a player.
+    if (msg.type === "join") {
+      const cid = String(msg.cid || "").slice(0, 64);
+      if (!cid) return;
+      let p = this.players.get(cid);
+      if (!p) {
+        // A brand-new player. If they arrive mid-game they'll start the shared
+        // deck from the top (pindex 0); an existing player keeps their place.
+        p = this.newPlayer(cid);
+        this.players.set(cid, p);
+      }
+      p.name = String(msg.name || "").trim().slice(0, 16) || p.name || "Player";
+      p.online = true;
+      this.conns.set(sender.id, cid);
+      this.sync();
+      return;
+    }
+
+    const cid = this.conns.get(sender.id);
+    const p = cid ? this.players.get(cid) : null;
     if (!p) return;
 
     switch (msg.type) {
-      case "join":
-        p.name = String(msg.name || "").trim().slice(0, 16) || "Player";
-        break;
-      case "start":
-        if (sender.id === this.hostId) this.startGame(msg.qpp);
-        break;
-      case "answer":
-        this.handleAnswer(p, msg.choice);
-        break;
-      case "next":
-        this.advance(p);
-        break;
-      case "restart":
-        // Host's "New Game" — immediately re-deal a fresh round for everyone,
-        // same room/code, no lobby trip.
-        if (sender.id === this.hostId) this.startGame(this.qN);
+      case "answer":  this.handleAnswer(p, msg.choice); break;
+      case "next":    this.advance(p); break;
+      case "newgame": this.startGame(msg.n); break;   // anyone can start / re-deal
+      case "leave":
+        // Explicit exit (chose to leave / start fresh) — drop the record entirely.
+        this.players.delete(cid);
+        this.conns.delete(sender.id);
         break;
     }
     this.sync();
   }
 
   // ---- game flow ----
-  startGame(qpp) {
-    const n = Math.min(Math.max(Number(qpp) || this.qN, 3), 10, QUESTIONS.length);
-    this.qN = n;
-    this.deck = shuffle(QUESTIONS).slice(0, n);
+  startGame(n) {
+    const count = Math.min(Math.max(Number(n) || this.qN, MIN_N), MAX_N, QUESTIONS.length);
+    this.qN = count;
+    this.deck = shuffle(QUESTIONS).slice(0, count);
     this.tallies = this.deck.map(() => [0, 0, 0, 0]);
     this.phase = "playing";
+    // Everyone currently in the room (online or not) joins the fresh round at Q1.
     for (const p of this.players.values()) {
       p.score = 0; p.pindex = 0; p.answered = false; p.choice = null; p.correct = false; p.done = false;
     }
@@ -106,19 +135,8 @@ export default class Server {
     // A player can only advance their OWN question, and only after answering it.
     if (this.phase !== "playing" || p.done || !p.answered) return;
     p.pindex++;
-    if (p.pindex >= this.deck.length) {
-      p.done = true;
-    }
+    if (p.pindex >= this.deck.length) p.done = true;
     p.answered = false; p.choice = null; p.correct = false;
-  }
-
-  resetToLobby() {
-    this.phase = "lobby";
-    this.deck = [];
-    this.tallies = [];
-    for (const p of this.players.values()) {
-      p.score = 0; p.pindex = 0; p.answered = false; p.choice = null; p.correct = false; p.done = false;
-    }
   }
 
   // ---- per-connection state (each player sees their OWN question) ----
@@ -130,11 +148,12 @@ export default class Server {
       // How many questions this player has answered so far.
       progress: p.done ? this.deck.length : Math.min(p.pindex + (p.answered ? 1 : 0), this.deck.length),
       done: p.done,
+      online: p.online,
     }));
   }
 
-  stateFor(id) {
-    const p = this.players.get(id);
+  stateFor(cid) {
+    const p = cid ? this.players.get(cid) : null;
     const playing = this.phase === "playing";
     const q = playing && p && !p.done ? this.deck[p.pindex] : null;
     const answered = !!(p && p.answered);
@@ -143,8 +162,10 @@ export default class Server {
     return {
       type: "state",
       phase: this.phase,
-      hostId: this.hostId,
       total: this.deck.length,
+      qN: this.qN,
+      // "me" fields are null when this connection hasn't joined as a player yet.
+      myId: p ? p.id : null,
       myIndex: p ? p.pindex : 0,
       done: !!(p && p.done),
       answered,
@@ -162,7 +183,8 @@ export default class Server {
   sync() {
     // Each connection gets a state tailored to its own player.
     for (const conn of this.room.getConnections()) {
-      conn.send(JSON.stringify(this.stateFor(conn.id)));
+      const cid = this.conns.get(conn.id) || null;
+      conn.send(JSON.stringify(this.stateFor(cid)));
     }
   }
 }

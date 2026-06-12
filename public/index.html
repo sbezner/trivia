@@ -68,6 +68,11 @@
     padding: 13px; border-radius: 8px; margin-top: 8px;
   }
   .btn-ghost:hover { background: rgba(5,217,232,0.12); }
+  .btn-link {
+    display: inline-block; background: none; color: #8a7db8; font-size: 0.8rem;
+    letter-spacing: 1px; text-transform: uppercase; text-decoration: underline; padding: 6px;
+  }
+  .btn-link:hover { color: var(--neon-pink); }
 
   input.field {
     font-family: inherit; font-size: 1rem; width: 100%; padding: 13px 15px; border-radius: 8px;
@@ -75,9 +80,23 @@
   }
   input.field:focus { outline: none; border-color: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
   input.field::placeholder { color: #9a8fc0; }
-  input.code { text-transform: uppercase; letter-spacing: 6px; text-align: center; font-size: 1.4rem; }
+  input.code { letter-spacing: 12px; text-align: center; font-size: 2rem; font-weight: bold; padding-left: 12px; }
 
   .divider { text-align: center; color: #6f6396; letter-spacing: 3px; margin: 18px 0; font-size: 0.8rem; }
+
+  /* room banner (shown during play so people can join any time) */
+  .roombar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(181,55,242,0.15); border: 1px solid var(--neon-purple);
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; font-size: 0.8rem; letter-spacing: 1px;
+  }
+  .roombar .rb-code { color: var(--neon-yellow); font-size: 1.1rem; font-weight: bold; letter-spacing: 3px; }
+  .roombar .rb-actions { display: flex; gap: 8px; }
+  .roombar button {
+    background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+    border-radius: 6px; padding: 5px 10px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .roombar button:hover { background: rgba(5,217,232,0.15); }
 
   .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
     font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
@@ -101,7 +120,6 @@
   .answer.wrong { background: rgba(255, 46, 136, 0.2); border-color: var(--neon-pink); box-shadow: 0 0 12px var(--neon-pink); }
   .answer.picked { outline: 2px dashed var(--neon-yellow); outline-offset: 2px; }
   .answer.dim { opacity: 0.4; }
-  /* distribution bar fills the option from the left at reveal */
   .answer { position: relative; overflow: hidden; }
   .answer .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0;
     background: rgba(255, 46, 136, 0.22); z-index: 0; transition: width 0.6s cubic-bezier(.2,.8,.2,1); }
@@ -110,31 +128,23 @@
   .answer .qa { flex: 1; }
   .answer .pct { font-weight: bold; font-size: 0.82rem; letter-spacing: 1px; color: #fff; white-space: nowrap; }
 
-  /* animated reveal leaderboard */
   .rank-num { color: var(--neon-cyan); min-width: 24px; display: inline-block; }
-  .arr { font-size: 0.8rem; margin: 0 6px; }
-  .arr.up { color: #39ff14; } .arr.down { color: var(--neon-pink); } .arr.same { color: #6f6396; }
-  .delta { color: #39ff14; font-size: 0.75rem; margin-left: 8px; }
-  .player-row.reveal-row { animation: lbIn 0.45s ease both; }
-  @keyframes lbIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: translateX(0); } }
 
   .note { text-align: center; margin-top: 18px; min-height: 22px; font-size: 0.95rem; letter-spacing: 1px; color: var(--neon-cyan); }
 
-  /* room code display */
+  /* big room code in the lobby */
   .roomcode-label { text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); margin-bottom: 6px; }
-  .roomcode { text-align: center; font-size: 2.6rem; letter-spacing: 10px; color: var(--neon-yellow);
-    text-shadow: 0 0 12px var(--neon-pink); margin-bottom: 6px; }
+  .roomcode { text-align: center; font-size: 4rem; letter-spacing: 14px; color: var(--neon-yellow);
+    text-shadow: 0 0 14px var(--neon-pink); margin-bottom: 4px; padding-left: 14px; }
 
-  /* player list */
   .players { display: grid; gap: 8px; margin: 18px 0; }
   .player-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
     border-radius: 8px; background: rgba(5,217,232,0.08); border: 1px solid rgba(255,255,255,0.15); letter-spacing: 1px; }
   .player-row.me { border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(255,46,136,0.5); }
+  .player-row.offline { opacity: 0.45; }
   .player-row .pts { color: var(--neon-yellow); font-weight: bold; }
   .badge { font-size: 0.65rem; background: var(--neon-purple); padding: 2px 7px; border-radius: 10px; margin-left: 8px; letter-spacing: 1px; }
-  .status-dot { font-size: 0.85rem; }
 
-  /* stepper */
   .stepper { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 8px 0 4px; }
   .stepper button { width: 40px; height: 40px; border-radius: 8px; background: var(--neon-purple); color: #fff;
     font-size: 1.3rem; font-weight: bold; box-shadow: 0 0 10px var(--neon-purple); }
@@ -142,7 +152,6 @@
   .stepper .value { font-size: 1.6rem; color: var(--neon-yellow); min-width: 44px; text-align: center; }
   .setup-label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--neon-cyan); text-align: center; }
 
-  /* leaderboard */
   .leaderboard { display: grid; gap: 10px; margin-bottom: 20px; }
   .lb-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
     border-radius: 8px; background: rgba(5, 217, 232, 0.08); border: 2px solid var(--neon-cyan); }
@@ -150,7 +159,6 @@
   .lb-row.me { border-color: var(--neon-pink); }
   .lb-row .lb-pts { color: var(--neon-yellow); font-weight: bold; }
 
-  /* per-player progress / status */
   .prog { color: var(--neon-cyan); font-size: 0.75rem; margin-left: 6px; letter-spacing: 1px; }
   .prog.done { color: #39ff14; }
 
@@ -159,7 +167,6 @@
   .conn.online { color: #39ff14; }
   .conn.offline { color: var(--neon-pink); }
 
-  /* build/version stamp under the box, bottom-right (auto-incremented on deploy) */
   .version { position: absolute; right: 2px; bottom: -20px; font-size: 0.7rem;
     color: #6f6396; letter-spacing: 1px; }
 
@@ -176,36 +183,41 @@
   <!-- LANDING -->
   <div id="landing" class="screen">
     <p class="lead">
-      Play live with friends on their own phones.<br>
-      Host a game and share the 4-letter code, or punch in a code to join.
+      Play live with friends, each on your own phone.<br>
+      Start a new game and share the 2-digit code, or punch in a code to join one in progress.
     </p>
     <input class="field" id="nameInput" type="text" maxlength="16" placeholder="Your name">
-    <button class="btn-primary" onclick="hostGame()">Host New Game ▶</button>
-    <div class="divider">— OR JOIN ONE —</div>
-    <input class="field code" id="codeInput" type="text" maxlength="4" placeholder="CODE">
-    <button class="btn-ghost" onclick="joinGame()">Join Game</button>
+    <button class="btn-primary" onclick="newGame()">New Game ▶</button>
+    <div class="divider">— OR JOIN A GAME —</div>
+    <input class="field code" id="codeInput" type="tel" inputmode="numeric" maxlength="2" placeholder="00">
+    <button class="btn-ghost" onclick="joinGame()">Join a Game</button>
   </div>
 
-  <!-- LOBBY -->
+  <!-- LOBBY (gather + share code; any player can start) -->
   <div id="lobby" class="screen" style="display:none;">
     <div class="roomcode-label">Room Code</div>
-    <div class="roomcode" id="roomCode">----</div>
-    <button class="btn-ghost" id="copyBtn" onclick="copyInvite()" style="margin-bottom:6px;">Copy Invite Link</button>
+    <div class="roomcode" id="roomCode">--</div>
+    <button class="btn-ghost" id="copyBtn" onclick="copyInvite(event)" style="margin-bottom:6px;">Copy Invite Link</button>
     <div class="players" id="lobbyPlayers"></div>
-    <div id="hostControls" style="display:none;">
-      <div class="setup-label">Questions per player</div>
-      <div class="stepper">
-        <button onclick="changeQPP(-1)">−</button>
-        <span class="value" id="qppVal">5</span>
-        <button onclick="changeQPP(1)">+</button>
-      </div>
-      <button class="btn-primary" id="startBtn" onclick="startGame()">Start Game ▶</button>
+    <div class="setup-label">Questions this round</div>
+    <div class="stepper">
+      <button onclick="changeQPP(-1)">−</button>
+      <span class="value" id="qppVal">10</span>
+      <button onclick="changeQPP(1)">+</button>
     </div>
+    <button class="btn-primary" id="startBtn" onclick="startGame()">Start Game ▶</button>
     <div class="note" id="lobbyNote"></div>
+    <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
   <!-- GAME (question + reveal) -->
   <div id="game" class="screen" style="display:none;">
+    <div class="roombar">
+      <span>ROOM <span class="rb-code" id="gameCode">--</span></span>
+      <span class="rb-actions">
+        <button onclick="copyInvite(event)" id="gameCopyBtn">Copy Link</button>
+      </span>
+    </div>
     <div class="hud">
       <span class="qcount" id="qcount">Q 1 / 10</span>
       <span class="answered" id="answeredCount"></span>
@@ -215,18 +227,25 @@
     <div class="answers" id="answers"></div>
     <div class="note" id="gameNote"></div>
     <div class="players" id="gamePlayers" style="margin-top:18px;"></div>
-    <div id="gameHostControls"></div>
+    <div id="gameNextControls"></div>
   </div>
 
   <!-- GAME OVER -->
   <div id="over" class="screen" style="display:none;">
+    <div class="roombar">
+      <span>ROOM <span class="rb-code" id="overCode">--</span></span>
+      <span class="rb-actions">
+        <button onclick="copyInvite(event)">Copy Link</button>
+      </span>
+    </div>
     <div class="results-title" id="overTitle">Game Over</div>
     <div class="leaderboard" id="leaderboard"></div>
-    <div id="overHostControls"></div>
+    <button class="btn-primary" onclick="newGameAgain()">New Game ↻</button>
     <div class="note" id="overNote"></div>
+    <button class="btn-link" onclick="leaveRoom()">← Leave room</button>
   </div>
 
-  <div class="version" id="version">v5</div>
+  <div class="version" id="version">v6</div>
 </div>
 
 <script type="module">
@@ -235,23 +254,32 @@ import PartySocket from "https://esm.sh/partysocket@1.0.2";
 const $ = id => document.getElementById(id);
 const LETTERS = ["A", "B", "C", "D"];
 
+// ---- stable identity (survives refresh, reconnect, dropped phone) ----
+const LS = window.localStorage;
+function ensureCid() {
+  let c = LS.getItem("trivia.cid");
+  if (!c) {
+    c = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now());
+    LS.setItem("trivia.cid", c);
+  }
+  return c;
+}
+const myCid = ensureCid();
+
 let socket = null;
-let myId = null;
-let myName = "Player";
+let myId = null;         // === myCid once joined; used for "me" highlighting
+let myName = LS.getItem("trivia.name") || "Player";
 let myChoice = null;     // my pick for the current question (local echo)
 let lastIndex = -1;
 let lastSig = "";        // signature of MY question view; skip rebuild when unchanged
 let currentScreen = null;
-let qpp = 5;
+let qpp = 10;
 let state = null;
 let roomCode = "";
 
 // ---- connection ----
 function randomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no easily-confused chars
-  let c = "";
-  for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
-  return c;
+  return String(Math.floor(Math.random() * 90) + 10);  // 10–99, always two digits
 }
 
 function setConn(status) {
@@ -261,81 +289,86 @@ function setConn(status) {
 }
 
 function connect(code) {
-  roomCode = code.toUpperCase();
-  myChoice = null; lastIndex = -1;
+  roomCode = String(code);
+  myChoice = null; lastIndex = -1; lastSig = ""; state = null;
+  LS.setItem("trivia.room", roomCode);
+  LS.setItem("trivia.name", myName);
+  if (socket) { try { socket.close(); } catch {} }
   socket = new PartySocket({ host: location.host, room: roomCode });
   socket.addEventListener("open", () => {
     setConn("online");
-    socket.send(JSON.stringify({ type: "join", name: myName }));
+    socket.send(JSON.stringify({ type: "join", cid: myCid, name: myName }));
   });
   socket.addEventListener("close", () => setConn("offline"));
   socket.addEventListener("error", () => setConn("offline"));
   socket.addEventListener("message", (e) => {
     const msg = JSON.parse(e.data);
-    if (msg.type === "welcome") { myId = msg.id; return; }
+    if (msg.type === "welcome") return;
     if (msg.type === "state") { state = msg; render(); }
   });
 }
 
-const isHost = () => state && myId && myId === state.hostId;
-
 // ---- landing actions ----
-window.hostGame = () => {
-  myName = $("nameInput").value.trim().slice(0, 16) || "Player";
+function readName() {
+  const n = $("nameInput").value.trim().slice(0, 16) || myName || "Player";
+  myName = n;
+  LS.setItem("trivia.name", myName);
+  return n;
+}
+
+window.newGame = () => {
+  readName();
   connect(randomCode());
   showScreen("lobby");
 };
 
 window.joinGame = () => {
-  const code = $("codeInput").value.trim().toUpperCase();
-  if (code.length !== 4) { alert("Enter the 4-letter room code."); return; }
-  myName = $("nameInput").value.trim().slice(0, 16) || "Player";
+  const code = $("codeInput").value.trim();
+  if (!/^\d{2}$/.test(code)) { alert("Enter the 2-digit room code (like 44)."); return; }
+  readName();
   connect(code);
   showScreen("lobby");
 };
 
+window.leaveRoom = () => {
+  socket?.send(JSON.stringify({ type: "leave" }));
+  try { socket?.close(); } catch {}
+  socket = null; state = null; roomCode = ""; currentScreen = null;
+  LS.removeItem("trivia.room");
+  showScreen("landing");
+};
+
 function legacyCopy(text) {
-  // Fallback for non-secure contexts (e.g. phones on the http LAN IP) where
-  // navigator.clipboard is unavailable.
   try {
     const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
+    ta.value = text; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     return ok;
   } catch { return false; }
 }
 
-window.copyInvite = async () => {
+window.copyInvite = async (ev) => {
   if (!roomCode) return;
   const url = `${location.origin}${location.pathname}?room=${roomCode}`;
   let ok = false;
   try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(url);
-      ok = true;
-    }
-  } catch { /* fall through to legacy path */ }
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(url); ok = true; }
+  } catch { /* fall through */ }
   if (!ok) ok = legacyCopy(url);
-
-  const btn = $("copyBtn");
-  if (ok) {
-    btn.textContent = "Copied! ✓";
-    setTimeout(() => { btn.textContent = "Copy Invite Link"; }, 1500);
-  } else {
-    // Last resort: show the link so the user can copy it by hand.
-    prompt("Copy this invite link:", url);
+  const btn = ev && ev.currentTarget ? ev.currentTarget : $("copyBtn");
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = ok ? "Copied! ✓" : "Copy failed";
+    setTimeout(() => { btn.textContent = orig; }, 1500);
   }
+  if (!ok) prompt("Copy this invite link:", url);
 };
 
-window.changeQPP = (d) => { qpp = Math.min(10, Math.max(3, qpp + d)); $("qppVal").textContent = qpp; };
-window.startGame = () => socket?.send(JSON.stringify({ type: "start", qpp }));
+window.changeQPP = (d) => { qpp = Math.min(20, Math.max(3, qpp + d)); $("qppVal").textContent = qpp; };
+window.startGame = () => socket?.send(JSON.stringify({ type: "newgame", n: qpp }));
+window.newGameAgain = () => socket?.send(JSON.stringify({ type: "newgame", n: qpp }));
 window.sendAnswer = (choice) => {
   if (myChoice !== null || (state && state.answered)) return;
   myChoice = choice;
@@ -343,18 +376,18 @@ window.sendAnswer = (choice) => {
   render(); // optimistic "locked in" highlight until the server echoes the reveal
 };
 window.myNext = () => socket?.send(JSON.stringify({ type: "next" }));   // advances ONLY me
-window.hostRestart = () => socket?.send(JSON.stringify({ type: "restart" }));
 
 // ---- rendering ----
 function showScreen(id) {
-  if (currentScreen === id) return;   // already showing — don't re-trigger the fade-in
+  if (currentScreen === id) return;
   currentScreen = id;
   ["landing", "lobby", "game", "over"].forEach(s => $(s).style.display = s === id ? "block" : "none");
 }
 
 function render() {
   if (!state) return;
-  // Clear my local pick when MY own question advances.
+  myId = state.myId || myCid;
+
   if (state.myIndex !== lastIndex) { myChoice = null; lastIndex = state.myIndex; }
 
   if (state.phase === "lobby") {
@@ -365,56 +398,44 @@ function render() {
   }
   if (state.done) {
     showScreen("over");
-    renderOver();           // over screen has no question to flicker; leaderboard updates live
+    renderOver();
     lastSig = "";
     return;
   }
 
-  // Playing. Only rebuild MY question/answers when my own view changed — so
-  // another player answering or advancing repaints ONLY the scoreboard here,
-  // never my question.
+  // Playing. Only rebuild MY question/answers when my own view changed.
   showScreen("game");
+  $("gameCode").textContent = roomCode;
   const sig = `${state.myIndex}|${state.answered}|${myChoice}|${state.question ? state.question.q : ""}`;
   if (sig !== lastSig) { lastSig = sig; renderQuestionArea(); }
-  $("gamePlayers").innerHTML = scoreboardHTML();   // live score + status only
-}
-
-function playerRow(p, opts = {}) {
-  const me = p.id === myId ? '<span class="badge">YOU</span>' : "";
-  const host = p.id === state.hostId ? '<span class="badge">HOST</span>' : "";
-  let right;
-  if (opts.showAnswered) {
-    // Show the running score AND whether this player has locked in an answer.
-    right = `<span class="pts">${p.score}</span> <span class="status-dot">${p.answered ? "✓" : "…"}</span>`;
-  } else if (opts.showScore) {
-    right = `<span class="pts">${p.score}</span>`;
-  } else {
-    right = "";
-  }
-  return `<div class="player-row ${p.id === myId ? "me" : ""}">
-            <span>${escapeHtml(p.name)}${me}${host}</span><span>${right}</span>
-          </div>`;
+  $("gamePlayers").innerHTML = scoreboardHTML();
 }
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function lobbyRow(p) {
+  const me = p.id === myId ? '<span class="badge">YOU</span>' : "";
+  const dot = p.online ? "" : '<span class="badge" style="background:#444;">AWAY</span>';
+  return `<div class="player-row ${p.id === myId ? "me" : ""} ${p.online ? "" : "offline"}">
+            <span>${escapeHtml(p.name)}${me}${dot}</span><span></span>
+          </div>`;
+}
+
 function renderLobby() {
+  roomCode = roomCode || "--";
   $("roomCode").textContent = roomCode;
-  $("lobbyPlayers").innerHTML = state.players.map(p => playerRow(p)).join("");
-  if (isHost()) {
-    $("hostControls").style.display = "block";
-    $("startBtn").disabled = state.players.length < 1;
-    $("lobbyNote").textContent = state.players.length < 2 ? "Share the code — you can also play solo." : "";
-  } else {
-    $("hostControls").style.display = "none";
-    $("lobbyNote").textContent = "Waiting for the host to start…";
-  }
+  $("qppVal").textContent = qpp;
+  $("lobbyPlayers").innerHTML = state.players.map(lobbyRow).join("");
+  const others = state.players.filter(p => p.online).length;
+  $("lobbyNote").textContent = others < 2
+    ? "Share the code — or just hit Start to play. Friends can join any time."
+    : `${others} players in. Hit Start when you're ready — late-comers can still join.`;
 }
 
 function renderQuestionArea() {
-  const reveal = state.answered;            // personal reveal once I've answered MY question
+  const reveal = state.answered;
   $("qcount").textContent = `Q ${state.myIndex + 1} / ${state.total}`;
   const doneCount = state.players.filter(p => p.done).length;
   $("answeredCount").textContent = doneCount ? `${doneCount}/${state.players.length} finished` : "";
@@ -439,7 +460,6 @@ function renderQuestionArea() {
       if (i === state.correct) btn.classList.add("correct");
       else if (i === myReveal) btn.classList.add("wrong");
       else btn.classList.add("dim");
-      // Bar starts at width:0, then animates to pct via requestAnimationFrame below.
       btn.innerHTML = `<div class="fill ${i === state.correct ? "fill-correct" : ""}" style="width:0"></div>` +
                       label + `<span class="pct">${pct}% · ${n}</span>`;
     } else if (myChoice !== null) {
@@ -458,7 +478,6 @@ function renderQuestionArea() {
     });
   }
 
-  // note
   if (reveal) {
     $("gameNote").textContent = state.iCorrect ? "✔ RAD! +100" : "✗ Bogus!";
     $("gameNote").style.color = state.iCorrect ? "#39ff14" : "var(--neon-pink)";
@@ -470,8 +489,7 @@ function renderQuestionArea() {
     $("gameNote").style.color = "var(--neon-cyan)";
   }
 
-  // Personal Next — advances ONLY me, and only after I've answered.
-  const ctrl = $("gameHostControls");
+  const ctrl = $("gameNextControls");
   if (reveal) {
     const last = state.myIndex + 1 >= state.total;
     ctrl.innerHTML = `<button class="btn-primary" onclick="myNext()">${last ? "Finish ▶" : "Next ▶"}</button>`;
@@ -480,21 +498,21 @@ function renderQuestionArea() {
   }
 }
 
-// Shared live scoreboard: rank, name, score, and each player's progress/status.
 function scoreboardHTML() {
   const sorted = state.players.slice().sort((a, b) => (b.score - a.score) || (b.progress - a.progress));
   return sorted.map((p, i) => {
     const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
-    const host = p.id === state.hostId ? '<span class="badge">HOST</span>' : "";
+    const away = p.online ? "" : '<span class="badge" style="background:#444;">AWAY</span>';
     const status = p.done ? '<span class="prog done">✓ done</span>' : `<span class="prog">${p.progress}/${state.total}</span>`;
-    return `<div class="player-row ${p.id === myId ? "me" : ""}">
-              <span><span class="rank-num">${i + 1}.</span>${escapeHtml(p.name)}${you}${host}</span>
+    return `<div class="player-row ${p.id === myId ? "me" : ""} ${p.online ? "" : "offline"}">
+              <span><span class="rank-num">${i + 1}.</span>${escapeHtml(p.name)}${you}${away}</span>
               <span><span class="pts">${p.score}</span> ${status}</span>
             </div>`;
   }).join("");
 }
 
 function renderOver() {
+  $("overCode").textContent = roomCode;
   const allDone = state.players.length > 0 && state.players.every(p => p.done);
   const sorted = state.players.slice().sort((a, b) => b.score - a.score);
   const top = sorted.length ? sorted[0].score : 0;
@@ -504,7 +522,6 @@ function renderOver() {
     ? (sorted.filter(p => p.score === top).length > 1 ? "Final Results — Tie!" : `${escapeHtml(sorted[0].name)} Wins!`)
     : "You're Done!";
 
-  // While others are still playing, this board keeps updating live.
   $("leaderboard").innerHTML = sorted.map((p, rank) => {
     const lead = (p.score === top && allDone) ? "👑 " : `${rank + 1}. `;
     const you = p.id === myId ? '<span class="badge">YOU</span>' : "";
@@ -515,17 +532,24 @@ function renderOver() {
             </div>`;
   }).join("");
 
-  // Host can restart for everyone at any time.
-  $("overHostControls").innerHTML = isHost()
-    ? `<button class="btn-primary" onclick="hostRestart()">New Game ↻</button>` : "";
   $("overNote").textContent = allDone
-    ? (isHost() ? "" : "Waiting for the host to start a new game…")
+    ? "Hit New Game to play another round — everyone stays in the room."
     : `You scored ${me ? me.score : 0}. Others are still playing — the board updates live!`;
 }
 
-// Prefill room code from ?room= invite links
+// ---- boot ----
+// Prefill name and any ?room= invite code.
+if (myName && myName !== "Player") $("nameInput").value = myName;
 const params = new URLSearchParams(location.search);
-if (params.get("room")) $("codeInput").value = params.get("room").toUpperCase().slice(0, 4);
+const urlRoom = params.get("room");
+if (urlRoom && /^\d{2}$/.test(urlRoom)) $("codeInput").value = urlRoom;
+
+// Auto-rejoin: if we were in a room, reconnect and resume right where we left off.
+const savedRoom = urlRoom && /^\d{2}$/.test(urlRoom) ? urlRoom : LS.getItem("trivia.room");
+if (savedRoom && /^\d{2}$/.test(savedRoom)) {
+  connect(savedRoom);
+  // render() will move us to the right screen once the first state arrives.
+}
 </script>
 </body>
 </html>

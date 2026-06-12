@@ -31,10 +31,10 @@ npm run deploy         # logs into Cloudflare and deploys; prints your live URL
 
 ### How it works
 
-- **One person hosts** → gets a 4-letter room code (and a copyable invite link).
-- **Others join** by entering the code on their phones.
-- The host starts; the same question appears for everyone at once.
-- Answers lock in; when everyone's answered (or the host hits **Reveal**), the correct answer and live scoreboard update for all.
+- **No host.** Anyone starts a **New Game** → gets a 2-digit room code (and a copyable invite link).
+- **Others join** by entering the code on their phones — they can hop in any time, even mid-game.
+- Self-paced: everyone answers the same shared deck at their own speed. Answering reveals the question (and the live answer-distribution) just for you; **Next** advances only you. Scores are shared and update live.
+- **Refresh-proof.** Identity is stored in the browser, so a refresh or a dropped phone reconnects as the same player and resumes exactly where you left off. Any player can start the next **New Game**; everyone stays in the room.
 - 100 points per correct answer; final leaderboard crowns the winner (ties handled).
 
 ### Architecture
@@ -43,7 +43,7 @@ npm run deploy         # logs into Cloudflare and deploys; prints your live URL
 |---|---|
 | `party/server.js` | Authoritative game server — one instance per room (a Cloudflare Durable Object). Holds state, hides the answer key until reveal. |
 | `party/questions.js` | The question bank **with answers** — server-side only, never shipped to players. |
-| `public/index.html` | The player UI (host/join/lobby/question/leaderboard). Receives questions over WebSocket; never sees the answer key early. |
+| `public/index.html` | The player UI (new-game/join/lobby/question/leaderboard). Stores a stable client id in `localStorage` for refresh-proof resume; never sees the answer key early. |
 | `partykit.json` | PartyKit/Cloudflare config. |
 
 ### Known limitations (MVP)
